@@ -1,0 +1,21 @@
+{
+    "stages": {
+        "request": {
+            "function_name": "request",
+            "cloudfunction": {
+                "environmentVariables": {
+                },
+                "serviceAccountEmail": "" 
+            }
+        },
+        "provision": {
+            "function_name": "provision",
+            "cloudfunction": {
+                "environmentVariables": {
+                },
+                "maxInstances": 2,
+                "serviceAccountEmail": "" 
+            }
+        }
+    }
+}
