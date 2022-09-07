@@ -7,6 +7,14 @@
             "function_name": "slack-request",
             "main_file": "request.py",
             "requirements_file": "requirements-request.txt",
+            "bindings": [
+                {
+                    "role": "roles/cloudfunctions.invoker",
+                    "members": [
+                        "allUsers"
+                    ]
+                }
+            ],
             "cloudfunction": {
                 "environmentVariables": {
                 },
