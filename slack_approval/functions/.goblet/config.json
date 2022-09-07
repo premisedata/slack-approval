@@ -1,4 +1,7 @@
 {
+    "custom_files": {
+        "exclude": ["request.py", "provision.py"]
+    },
     "stages": {
         "request": {
             "function_name": "slack-request",
