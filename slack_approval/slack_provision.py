@@ -8,12 +8,12 @@ logger.setLevel(logging.DEBUG)
 
 class SlackProvision:
     def __init__(self, request, approved, rejected, requesters_channel=None):
-        self.name = "test"
         self.request = request.json
         payload = json.loads(self.request.form["payload"])
         action = payload["actions"][0]
         self.action_id = action["action_id"]
         self.inputs = json.loads(action["value"])
+        self.name = self.inputs["name"]
         self.user = ' '.join(payload["user"]["name"].split('.'))
         self.response_url = payload["response_url"]
         self.approved = approved
