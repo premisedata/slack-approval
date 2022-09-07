@@ -7,7 +7,7 @@ logger = logging.getLogger("slack_provision")
 logger.setLevel(logging.DEBUG)
 
 class SlackProvision:
-    def __init__(self, request, approved, rejected, requesters_channel=None):
+    def __init__(self, request, requesters_channel=None):
         payload = json.loads(request.form["payload"])
         action = payload["actions"][0]
         self.action_id = action["action_id"]
@@ -15,8 +15,6 @@ class SlackProvision:
         self.name = self.inputs["name"]
         self.user = ' '.join(payload["user"]["name"].split('.'))
         self.response_url = payload["response_url"]
-        self.approved = approved
-        self.rejected = rejected
         self.requesters_channel = requesters_channel
 
     def is_valid_signature(self, signing_secret):
@@ -28,6 +26,12 @@ class SlackProvision:
         signature = headers["x-slack-signature"]
         verifier = SignatureVerifier(signing_secret)
         return verifier.is_valid(data, timestamp, signature)
+
+    def approved(self):
+        raise NotImplementedError
+    
+    def rejected(self):
+        raise NotImplementedError
 
     def __call__(self):
         if self.action_id == "Approved":
