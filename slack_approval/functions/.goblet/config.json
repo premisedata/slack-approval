@@ -1,7 +1,9 @@
 {
     "stages": {
         "request": {
-            "function_name": "request",
+            "function_name": "slack-request",
+            "main_file": "request.py",
+            "requirements_file": "requirements-request.txt",
             "cloudfunction": {
                 "environmentVariables": {
                 },
@@ -9,7 +11,9 @@
             }
         },
         "provision": {
-            "function_name": "provision",
+            "function_name": "slack-provision",
+            "main_file": "provision.py",
+            "requirements_file": "requirements-provision.txt",
             "cloudfunction": {
                 "environmentVariables": {
                 },

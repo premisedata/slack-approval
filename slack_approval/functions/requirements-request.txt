@@ -1,3 +1,4 @@
 goblet-gcp==0.8.2
 slack_sdk==3.18.1
 google-cloud-secret-manager==2.12.4
+git+https://github.com/premisedata/slack-approval.git
