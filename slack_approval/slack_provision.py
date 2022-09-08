@@ -8,6 +8,7 @@ logger.setLevel(logging.DEBUG)
 
 class SlackProvision:
     def __init__(self, request, requesters_channel=None):
+        self.request = request
         payload = json.loads(request.form["payload"])
         action = payload["actions"][0]
         self.action_id = action["action_id"]
