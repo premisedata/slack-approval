@@ -8,6 +8,8 @@ logger.setLevel(logging.DEBUG)
 
 class SlackRequest:
     def __init__(self, request, approvers_channel, requesters_channel=None):
+        """requesters_channel only necessary for `pending` messages
+        """
         self.inputs = request.json
         self.name = self.inputs["name"]
         self.value = json.dumps(self.inputs)
