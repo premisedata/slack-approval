@@ -23,7 +23,7 @@ class SlackRequest:
         ]
         input_blocks = [
             {"type": "section", "text": {"type": "mrkdwn", "text": f"{key}: {value}",},}
-            for key, value in self.inputs.items()
+            for key, value in self.inputs.items() if key != "name"
         ]
         blocks.extend(input_blocks)
         if self.requesters_channel:
