@@ -1,3 +1,4 @@
+import os
 from goblet import Goblet, goblet_entrypoint
 from slack_approval.slack_request import SlackRequest
 
@@ -7,10 +8,7 @@ goblet_entrypoint(app)
 
 @app.http()
 def main(request):
+    """Forwards requests to slack
     """
-    """
-    slack_request = SlackRequest(request, approvers_channel)
+    slack_request = SlackRequest(request, os.environ.get("APPROVERSS_CHANNEL_HOOK"), os.environ.get("REQUESTER_CHANNEL_HOOK"))
     slack_request.send_request_message()
-
-
-

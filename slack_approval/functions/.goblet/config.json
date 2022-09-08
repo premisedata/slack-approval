@@ -1,15 +1,25 @@
 {
-    "custom_files": {
-        "exclude": ["request.py", "provision.py"]
-    },
     "stages": {
         "request": {
             "function_name": "slack-request",
             "main_file": "request.py",
             "requirements_file": "requirements-request.txt",
+            "custom_files": {
+                "exclude": ["request.py", "provision.py", "provision_*"]
+            },
             "cloudfunction": {
-                "environmentVariables": {
-                },
+                "secretEnvironmentVariables": [
+                    {
+                        "key": "APPROVERS_CHANNEL_HOOK",
+                        "secret": "channel-webhook",
+                        "version": "latest"
+                    },
+                    {
+                        "key": "REQUESTERS_CHANNEL_HOOK",
+                        "secret": "channel-webhook",
+                        "version": "latest"
+                    }
+                ],
                 "serviceAccountEmail": "" 
             }
         },
@@ -17,9 +27,22 @@
             "function_name": "slack-provision",
             "main_file": "provision.py",
             "requirements_file": "requirements-provision.txt",
+            "custom_files": {
+                "exclude": ["request.py", "provision.py"]
+            },
             "cloudfunction": {
-                "environmentVariables": {
-                },
+                "secretEnvironmentVariables": [
+                    {
+                        "key": "SIGNING_SECRET",
+                        "secret": "signing-secret",
+                        "version": "latest"
+                    },
+                    {
+                        "key": "REQUESTERS_CHANNEL_HOOK",
+                        "secret": "channel-webhook",
+                        "version": "latest"
+                    }
+                ],
                 "maxInstances": 2,
                 "serviceAccountEmail": "" 
             }
