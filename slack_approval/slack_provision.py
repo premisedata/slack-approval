@@ -10,10 +10,11 @@ class SlackProvision:
     def __init__(self, request, requesters_channel=None):
         self.request = request
         payload = json.loads(request.form["payload"])
-        logger.info(request)
+        logger.info(vars(request))
         logger.info(request.form)
         logger.info(payload)
         logger.info(request.data)
+        logger.info(request.json)
         action = payload["actions"][0]
         self.action_id = action["action_id"]
         self.inputs = json.loads(action["value"])
@@ -30,6 +31,7 @@ class SlackProvision:
         logger.info(data)
         timestamp = headers["x-slack-request-timestamp"]
         signature = headers["x-slack-signature"]
+        logger.info(timestamp, signature)
         verifier = SignatureVerifier(signing_secret)
         return verifier.is_valid(data, timestamp, signature)
 
