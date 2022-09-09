@@ -10,6 +10,10 @@ class SlackProvision:
     def __init__(self, request, requesters_channel=None):
         self.request = request
         payload = json.loads(request.form["payload"])
+        logger.info(request)
+        logger.info(request.form)
+        logger.info(payload)
+        logger.info(request.data)
         action = payload["actions"][0]
         self.action_id = action["action_id"]
         self.inputs = json.loads(action["value"])
@@ -22,7 +26,6 @@ class SlackProvision:
         """Validates the request from the Slack integration
         """
         headers = self.request.headers
-        logger.info(headers)
         data = self.request.get_data()
         logger.info(data)
         timestamp = headers["x-slack-request-timestamp"]
