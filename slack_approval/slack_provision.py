@@ -23,7 +23,7 @@ class SlackProvision:
         """
         headers = self.request.headers
         logger.info(headers)
-        data = self.request.get_data(as_text=True)
+        data = self.request.get_data()
         logger.info(data)
         timestamp = headers["x-slack-request-timestamp"]
         signature = headers["x-slack-signature"]
