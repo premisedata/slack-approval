@@ -27,7 +27,10 @@ class SlackRequest:
         input_blocks = [
             {
                 "type": "section",
-                "text": {"type": "mrkdwn", "text": f"*{key.capitalize()}:* {value}",},
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"*{' '.join([s.capitalize() for s in key.split('_')])}:* {value}",
+                },
             }
             for key, value in self.inputs.items()
             if key != "provision_class"
