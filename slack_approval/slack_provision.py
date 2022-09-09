@@ -8,7 +8,8 @@ logger.setLevel(logging.DEBUG)
 
 class SlackProvision:
     def __init__(self, request, requesters_channel=None):
-        self.request = request
+        self.data = request.get_data()
+        self.headers = request.headers
         payload = json.loads(request.form["payload"])
         action = payload["actions"][0]
         self.action_id = action["action_id"]
@@ -21,13 +22,11 @@ class SlackProvision:
     def is_valid_signature(self, signing_secret):
         """Validates the request from the Slack integration
         """
-        headers = self.request.headers
-        data = self.request.get_data(as_text=True, parse_form_data=True)
-        logger.info(data)
-        timestamp = headers["x-slack-request-timestamp"]
-        signature = headers["x-slack-signature"]
+        logger.info(self.data)
+        timestamp = self.headers["x-slack-request-timestamp"]
+        signature = self.headers["x-slack-signature"]
         verifier = SignatureVerifier(signing_secret)
-        return verifier.is_valid(data, timestamp, signature)
+        return verifier.is_valid(self.data, timestamp, signature)
 
     def approved(self):
         raise NotImplementedError
