@@ -21,11 +21,16 @@ class SlackRequest:
             {
                 "type": "header",
                 "text": {"type": "plain_text", "text": self.name, "emoji": True,},
-            }
+            },
+            {"type": "divider"},
         ]
         input_blocks = [
-            {"type": "section", "text": {"type": "mrkdwn", "text": f"{key}: {value}",},}
-            for key, value in self.inputs.items() if key != "provision_class"
+            {
+                "type": "section",
+                "text": {"type": "mrkdwn", "text": f"*{key}:* {value}",},
+            }
+            for key, value in self.inputs.items()
+            if key != "provision_class"
         ]
         blocks.extend(input_blocks)
         if self.requesters_channel:
@@ -37,7 +42,7 @@ class SlackRequest:
                     + [
                         {
                             "type": "section",
-                            "text": {"type": "mrkdwn", "text": "Request Pending",},
+                            "text": {"type": "mrkdwn", "text": "*Request Pending*",},
                         }
                     ],
                 )

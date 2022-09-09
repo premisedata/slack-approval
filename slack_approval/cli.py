@@ -1,6 +1,6 @@
 import click
 import shutil
-import os 
+import os
 
 
 @click.group()
@@ -15,5 +15,6 @@ def init():
     dir_path = os.path.dirname(os.path.realpath(__file__))
     shutil.copytree(f"{dir_path}/functions", f"{os.getcwd()}/functions")
 
+
 if __name__ == "__main__":
-    main() 
+    main()

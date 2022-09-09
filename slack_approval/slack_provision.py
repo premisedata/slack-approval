@@ -6,6 +6,7 @@ from slack_sdk import WebhookClient, errors
 logger = logging.getLogger("slack_provision")
 logger.setLevel(logging.DEBUG)
 
+
 class SlackProvision:
     def __init__(self, request, requesters_channel=None):
         self.data = request.get_data()
@@ -15,7 +16,9 @@ class SlackProvision:
         self.action_id = action["action_id"]
         self.inputs = json.loads(action["value"])
         self.name = self.inputs["provision_class"]
-        self.user = ' '.join(payload["user"]["name"].split('.'))
+        self.user = " ".join(
+            [s.capitalize() for s in payload["user"]["name"].split(".")]
+        )
         self.response_url = payload["response_url"]
         self.requesters_channel = requesters_channel
         self.exception = None
@@ -31,7 +34,7 @@ class SlackProvision:
 
     def approved(self):
         raise NotImplementedError
-    
+
     def rejected(self):
         raise NotImplementedError
 
@@ -44,22 +47,45 @@ class SlackProvision:
         except Exception as e:
             self.exception = e
         self.send_status_message()
-    
+
     def send_status_message(self):
         blocks = [
             {
                 "type": "header",
                 "text": {"type": "plain_text", "text": self.name, "emoji": True,},
-            }
+            },
+            {"type": "divider"},
         ]
         input_blocks = [
-            {"type": "section", "text": {"type": "mrkdwn", "text": f"{key}: {value}",},}
-            for key, value in self.inputs.items() if key != "provision_class"
+            {
+                "type": "section",
+                "text": {"type": "mrkdwn", "text": f"*{key}:* {value}",},
+            }
+            for key, value in self.inputs.items()
+            if key != "provision_class"
         ]
         blocks.extend(input_blocks)
-        blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": f"Status: {self.action_id} by {self.user}",},})
+        blocks.append({"type": "divider"})
+        blocks.append(
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"*Status: {self.action_id} by {self.user}*",
+                },
+            }
+        )
         if self.exception:
-            blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": f"Error while provisioning: {self.exception}",},})
+            blocks.append({"type": "divider"})
+            blocks.append(
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": f"Error while provisioning: {self.exception}",
+                    },
+                }
+            )
         try:
             slack_client = WebhookClient(self.response_url)
             response = slack_client.send(text="fallback", blocks=blocks)
