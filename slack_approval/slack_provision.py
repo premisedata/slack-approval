@@ -18,6 +18,7 @@ class SlackProvision:
         self.user = ' '.join(payload["user"]["name"].split('.'))
         self.response_url = payload["response_url"]
         self.requesters_channel = requesters_channel
+        self.exception = None
 
     def is_valid_signature(self, signing_secret):
         """Validates the request from the Slack integration
