@@ -35,10 +35,13 @@ class SlackProvision:
         raise NotImplementedError
 
     def __call__(self):
-        if self.action_id == "Approved":
-            self.approved()
-        elif self.action_id == "Rejected":
-            self.rejected()
+        try:
+            if self.action_id == "Approved":
+                self.approved()
+            elif self.action_id == "Rejected":
+                self.rejected()
+        except Exception as e:
+            self.exception = e
         self.send_status_message()
     
     def send_status_message(self):
@@ -54,6 +57,8 @@ class SlackProvision:
         ]
         blocks.extend(input_blocks)
         blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": f"Status: {self.action_id} by {self.user}",},})
+        if self.exception:
+            blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": f"Error while provisioning: {self.exception}",},})
         try:
             slack_client = WebhookClient(self.response_url)
             response = slack_client.send(text="fallback", blocks=blocks)
