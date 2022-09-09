@@ -11,7 +11,7 @@ class SlackRequest:
         """requesters_channel only necessary for `pending` messages
         """
         self.inputs = request.json
-        self.name = self.inputs["name"]
+        self.name = self.inputs["provision_class"]
         self.value = json.dumps(self.inputs)
         self.approvers_channel = approvers_channel
         self.requesters_channel = requesters_channel
@@ -25,7 +25,7 @@ class SlackRequest:
         ]
         input_blocks = [
             {"type": "section", "text": {"type": "mrkdwn", "text": f"{key}: {value}",},}
-            for key, value in self.inputs.items() if key != "name"
+            for key, value in self.inputs.items() if key != "provision_class"
         ]
         blocks.extend(input_blocks)
         if self.requesters_channel:

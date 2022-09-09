@@ -13,7 +13,7 @@ class SlackProvision:
         action = payload["actions"][0]
         self.action_id = action["action_id"]
         self.inputs = json.loads(action["value"])
-        self.name = self.inputs["name"]
+        self.name = self.inputs["provision_class"]
         self.user = ' '.join(payload["user"]["name"].split('.'))
         self.response_url = payload["response_url"]
         self.requesters_channel = requesters_channel
@@ -50,7 +50,7 @@ class SlackProvision:
         ]
         input_blocks = [
             {"type": "section", "text": {"type": "mrkdwn", "text": f"{key}: {value}",},}
-            for key, value in self.inputs.items()
+            for key, value in self.inputs.items() if key != "provision_class"
         ]
         blocks.extend(input_blocks)
         blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": f"Status: {self.action_id} by {self.user}",},})
