@@ -22,7 +22,9 @@ class SlackProvision:
         """Validates the request from the Slack integration
         """
         headers = self.request.headers
+        logger.info(headers)
         data = self.request.get_data(as_text=True)
+        logger.info(data)
         timestamp = headers["x-slack-request-timestamp"]
         signature = headers["x-slack-signature"]
         verifier = SignatureVerifier(signing_secret)
