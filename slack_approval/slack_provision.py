@@ -26,7 +26,6 @@ class SlackProvision:
         logger.info(data)
         timestamp = headers["x-slack-request-timestamp"]
         signature = headers["x-slack-signature"]
-        logger.info(timestamp, signature)
         verifier = SignatureVerifier(signing_secret)
         return verifier.is_valid(data, timestamp, signature)
 
