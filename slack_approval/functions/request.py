@@ -10,5 +10,5 @@ goblet_entrypoint(app)
 def main(request):
     """Forwards requests to slack
     """
-    slack_request = SlackRequest(request, os.environ.get("APPROVERSS_CHANNEL_HOOK"), os.environ.get("REQUESTER_CHANNEL_HOOK"))
+    slack_request = SlackRequest(request, os.environ.get("APPROVERS_CHANNEL_HOOK"), os.environ.get("REQUESTER_CHANNEL_HOOK"))
     slack_request.send_request_message()
