@@ -36,7 +36,7 @@ class SlackProvision:
         raise NotImplementedError
 
     def rejected(self):
-        raise NotImplementedError
+        logger.info("lb endpoint rejected")
 
     def __call__(self):
         try:
