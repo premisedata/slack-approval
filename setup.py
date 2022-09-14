@@ -5,7 +5,7 @@ setup(
     version="0.1.0",
     packages=find_packages(include=["slack_approval", "slack_approval.*"]),
     install_requires=[
-        "goblet-gcp==0.8.2",
+        "goblet-gcp>=0.8.3",
         "slack_sdk==3.18.1",
         "google-cloud-secret-manager==2.12.4",
     ],
