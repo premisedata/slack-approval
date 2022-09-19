@@ -15,6 +15,7 @@ class SlackRequest:
         self.value = json.dumps(self.inputs)
         hide = self.inputs.get("hide")
         if hide:
+            logger.info(hide)
             for field in hide:
                 self.inputs.pop(field)
             self.inputs.pop("hide")
