@@ -46,6 +46,11 @@ class SlackProvision:
                 self.rejected()
         except Exception as e:
             self.exception = e
+        hide = self.inputs.get("hide")
+        if hide:
+            for field in hide:
+                self.inputs.pop(field)
+            self.inputs.pop("hide")
         self.send_status_message()
 
     def send_status_message(self):

@@ -13,6 +13,11 @@ class SlackRequest:
         self.inputs = request.json
         self.name = self.inputs["provision_class"]
         self.value = json.dumps(self.inputs)
+        hide = self.inputs.get("hide")
+        if hide:
+            for field in hide:
+                self.inputs.pop(field)
+            self.inputs.pop("hide")
         self.approvers_channel = approvers_channel
         self.requesters_channel = requesters_channel
 
