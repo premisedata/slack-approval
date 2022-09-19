@@ -26,7 +26,6 @@ class SlackProvision:
     def is_valid_signature(self, signing_secret):
         """Validates the request from the Slack integration
         """
-        logger.info(self.data)
         timestamp = self.headers["x-slack-request-timestamp"]
         signature = self.headers["x-slack-signature"]
         verifier = SignatureVerifier(signing_secret)
