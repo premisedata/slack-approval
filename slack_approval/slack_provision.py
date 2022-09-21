@@ -32,10 +32,10 @@ class SlackProvision:
         return verifier.is_valid(self.data, timestamp, signature)
 
     def approved(self):
-        raise NotImplementedError
+        logger.info("request approved")
 
     def rejected(self):
-        logger.info("lb endpoint rejected")
+        logger.info("request rejected")
 
     def __call__(self):
         try:
