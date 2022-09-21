@@ -7,7 +7,6 @@ setup(
     install_requires=[
         "goblet-gcp>=0.8.3",
         "slack_sdk==3.18.1",
-        "google-cloud-secret-manager==2.12.4",
     ],
     entry_points={"console_scripts": ["slack-approval=slack_approval.cli:main"]},
 )
