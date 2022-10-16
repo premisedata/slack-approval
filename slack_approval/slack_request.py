@@ -56,6 +56,7 @@ class SlackRequest:
                     ],
                 )
                 logger.info(response.status_code)
+                logger.info(response.body)
             except errors.SlackApiError as e:
                 logger.error(e)
         blocks.append(
