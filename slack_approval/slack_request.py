@@ -13,7 +13,7 @@ class SlackRequest:
         """
         self.inputs = request.json
         self.name = self.inputs["provision_class"]
-        self.value = json.dumps(self.inputs)
+        self.value = self.inputs # save inputs before hiding anything
         hide = self.inputs.get("hide")
         if hide:
             logger.info(f"Hidden fields: {hide}")
@@ -62,6 +62,7 @@ class SlackRequest:
                 self.value["requesters_channel"] = self.requesters_channel
             except errors.SlackApiError as e:
                 logger.error(e)
+        value = json.dumps(self.value)
         blocks.append(
             {
                 "type": "actions",
@@ -75,7 +76,7 @@ class SlackRequest:
                         },
                         "style": "primary",
                         "action_id": "Approved",
-                        "value": self.value,
+                        "value": value,
                         "confirm": {
                             "title": {"type": "plain_text", "text": "Confirm",},
                             "text": {"type": "mrkdwn", "text": "Are you sure?",},
@@ -93,7 +94,7 @@ class SlackRequest:
                             "emoji": True,
                             "text": "Reject",
                         },
-                        "value": self.value,
+                        "value": value,
                         "style": "danger",
                         "action_id": "Rejected",
                     },
