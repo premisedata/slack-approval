@@ -24,6 +24,7 @@ class SlackProvision:
         )
         self.response_url = payload["response_url"]
         self.exception = None
+        self.token = os.environ.get("SLACK_BOT_TOKEN")
 
     def is_valid_signature(self, signing_secret):
         """Validates the request from the Slack integration
