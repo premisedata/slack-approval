@@ -10,7 +10,7 @@ goblet_entrypoint(app)
 def main(request):
     """
     """
-    slack_provision = SlackProvision(request, os.environ.get("REQUESTERS_CHANNEL_HOOK"))
+    slack_provision = SlackProvision(request, os.environ.get("REQUESTERS_CHANNEL"))
     # validate request using the signature secret
     if not slack_provision.is_valid_signature(os.environ.get("SIGNING_SECRET")):
         return Response("Forbidden", status_code=403)

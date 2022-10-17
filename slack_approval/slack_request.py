@@ -1,13 +1,14 @@
+import os
 import logging
 import json
-from slack_sdk import WebhookClient, errors
+from slack_sdk import WebhookClient, errors, WebClient
 
 logger = logging.getLogger("slack_request")
 logger.setLevel(logging.DEBUG)
 
 
 class SlackRequest:
-    def __init__(self, request, approvers_channel, requesters_channel=None):
+    def __init__(self, request):
         """requesters_channel only necessary for `pending` messages
         """
         self.inputs = request.json
@@ -19,10 +20,12 @@ class SlackRequest:
             for field in hide:
                 self.inputs.pop(field)
             self.inputs.pop("hide")
-        self.approvers_channel = approvers_channel
-        self.requesters_channel = requesters_channel
+        self.token = os.environ.get("SLACK_BOT_TOKEN")
+        self.approvers_channel = os.environ.get("APPROVERS_CHANNEL")
+        self.requesters_channel = os.environ.get("REQUESTERS_CHANNEL")
 
     def send_request_message(self):
+        slack_web_client = WebClient(self.token)
         blocks = [
             {
                 "type": "header",
@@ -44,8 +47,8 @@ class SlackRequest:
         blocks.extend(input_blocks)
         if self.requesters_channel:
             try:
-                slack_client = WebhookClient(self.requesters_channel)
-                response = slack_client.send(
+                response = slack_web_client.chat_postMessage(
+                    channel=self.requesters_channel,
                     text="fallback",
                     blocks=blocks
                     + [
@@ -55,9 +58,7 @@ class SlackRequest:
                         }
                     ],
                 )
-                logger.info(response.status_code)
-                logger.info(response.body)
-                logger.info(response.headers)
+                logger.info(response.data)
             except errors.SlackApiError as e:
                 logger.error(e)
         blocks.append(
@@ -99,8 +100,9 @@ class SlackRequest:
             }
         )
         try:
-            slack_client = WebhookClient(self.approvers_channel)
-            response = slack_client.send(text="fallback", blocks=blocks)
-            logger.info(response.status_code)
+            response = slack_web_client.chat_postMessage(
+                channel=self.approvers_channel, text="fallback", blocks=blocks
+            )
+            # logger.info(response.status_code)
         except errors.SlackApiError as e:
             logger.error(e)
