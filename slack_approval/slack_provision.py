@@ -101,7 +101,10 @@ class SlackProvision:
             logger.info(response.status_code)
         except errors.SlackApiError as e:
             logger.error(e)
+        logger.info(self.requesters_channel)
+        logger.info(self.ts)
         if self.requesters_channel and self.ts:
+            logger.info("here")
             try:
                 slack_web_client = WebClient(self.token)
                 response = slack_web_client.chat_update(
