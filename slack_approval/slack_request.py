@@ -22,7 +22,7 @@ class SlackRequest:
             self.inputs.pop("hide")
         self.token = os.environ.get("SLACK_BOT_TOKEN")
         self.approvers_channel = os.environ["APPROVERS_CHANNEL"]
-        self.requesters_channel = os.environ.get("REQUESTERS_CHANNEL")
+        self.requesters_channel = os.environ["REQUESTERS_CHANNEL"]
 
     def send_request_message(self):
         slack_web_client = WebClient(self.token)
@@ -45,23 +45,24 @@ class SlackRequest:
             if key != "provision_class"
         ]
         blocks.extend(input_blocks)
-        if self.requesters_channel:
-            try:
-                response = slack_web_client.chat_postMessage(
-                    channel=self.requesters_channel,
-                    text="fallback",
-                    blocks=blocks
-                    + [
-                        {
-                            "type": "section",
-                            "text": {"type": "mrkdwn", "text": "*Request Pending*",},
-                        }
-                    ],
-                )
-                self.value["ts"] = response.get("ts")
-                self.value["requesters_channel"] = self.requesters_channel
-            except errors.SlackApiError as e:
-                logger.error(e)
+        # First send to requesters channel
+        try:
+            response = slack_web_client.chat_postMessage(
+                channel=self.requesters_channel,
+                text="fallback",
+                blocks=blocks
+                + [
+                    {
+                        "type": "section",
+                        "text": {"type": "mrkdwn", "text": "*Request Pending*",},
+                    }
+                ],
+            )
+            # Save timestamp and requesters channel to be updated after provision
+            self.value["ts"] = response.get("ts")
+            self.value["requesters_channel"] = self.requesters_channel
+        except errors.SlackApiError as e:
+            logger.error(e)
         value = json.dumps(self.value)
         blocks.append(
             {
@@ -101,6 +102,7 @@ class SlackRequest:
                 ],
             }
         )
+        # Send to approvers channel with `approve` and `reject` buttons
         try:
             response = slack_web_client.chat_postMessage(
                 channel=self.approvers_channel, text="fallback", blocks=blocks

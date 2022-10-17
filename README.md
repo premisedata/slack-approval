@@ -1,1 +1,9 @@
 # slack-approvals
+
+## Request
+APPROVERS_CHANNEL
+REQUESTERS_CHANNEL
+SLACK_BOT_TOKEN
+
+## Provision
+SLACK_BOT_TOKEN

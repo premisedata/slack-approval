@@ -16,6 +16,7 @@
                     }
                 ],
                 "environmentVariables": {
+                    "APPROVERS_CHANNEL": "CBA321",
                     "REQUESTERS_CHANNEL": "ABC123"
                 },
                 "serviceAccountEmail": "" 
