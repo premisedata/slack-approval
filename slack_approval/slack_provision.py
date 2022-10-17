@@ -10,6 +10,7 @@ logger.setLevel(logging.DEBUG)
 
 class SlackProvision:
     def __init__(self, request, requesters_channel=None):
+        self.token = os.environ.get("SLACK_BOT_TOKEN")
         self.data = request.get_data()
         self.headers = request.headers
         payload = json.loads(request.form["payload"])
@@ -24,7 +25,6 @@ class SlackProvision:
         )
         self.response_url = payload["response_url"]
         self.exception = None
-        self.token = os.environ.get("SLACK_BOT_TOKEN")
 
     def is_valid_signature(self, signing_secret):
         """Validates the request from the Slack integration
