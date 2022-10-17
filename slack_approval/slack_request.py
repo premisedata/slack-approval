@@ -1,7 +1,7 @@
 import os
 import logging
 import json
-from slack_sdk import WebhookClient, errors, WebClient
+from slack_sdk import WebClient, errors
 
 logger = logging.getLogger("slack_request")
 logger.setLevel(logging.DEBUG)
@@ -21,7 +21,7 @@ class SlackRequest:
                 self.inputs.pop(field)
             self.inputs.pop("hide")
         self.token = os.environ.get("SLACK_BOT_TOKEN")
-        self.approvers_channel = os.environ.get("APPROVERS_CHANNEL")
+        self.approvers_channel = os.environ["APPROVERS_CHANNEL"]
         self.requesters_channel = os.environ.get("REQUESTERS_CHANNEL")
 
     def send_request_message(self):
@@ -58,7 +58,8 @@ class SlackRequest:
                         }
                     ],
                 )
-                logger.info(response.data)
+                self.value["ts"] = response.get("ts")
+                self.value["requesters_channel"] = self.requesters_channel
             except errors.SlackApiError as e:
                 logger.error(e)
         blocks.append(
@@ -103,6 +104,6 @@ class SlackRequest:
             response = slack_web_client.chat_postMessage(
                 channel=self.approvers_channel, text="fallback", blocks=blocks
             )
-            # logger.info(response.status_code)
+            logger.info(response.status_code)
         except errors.SlackApiError as e:
             logger.error(e)

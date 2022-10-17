@@ -1,7 +1,8 @@
 import json
+import os
 import logging
 from slack_sdk.signature import SignatureVerifier
-from slack_sdk import WebhookClient, errors
+from slack_sdk import WebhookClient, WebClient, errors
 
 logger = logging.getLogger("slack_provision")
 logger.setLevel(logging.DEBUG)
@@ -15,12 +16,13 @@ class SlackProvision:
         action = payload["actions"][0]
         self.action_id = action["action_id"]
         self.inputs = json.loads(action["value"])
+        self.ts = self.inputs.pop("ts", None)
+        self.requesters_channel = self.inputs.pop("requesters_channel", None)
         self.name = self.inputs["provision_class"]
         self.user = " ".join(
             [s.capitalize() for s in payload["user"]["name"].split(".")]
         )
         self.response_url = payload["response_url"]
-        self.requesters_channel = requesters_channel
         self.exception = None
 
     def is_valid_signature(self, signing_secret):
@@ -99,10 +101,15 @@ class SlackProvision:
             logger.info(response.status_code)
         except errors.SlackApiError as e:
             logger.error(e)
-        if self.requesters_channel:
+        if self.requesters_channel and self.ts:
             try:
-                slack_client = WebhookClient(self.requesters_channel)
-                response = slack_client.send(text="fallback", blocks=blocks)
+                slack_web_client = WebClient(self.token)
+                response = slack_web_client.chat_update(
+                    channel=self.requesters_channel,
+                    ts=self.ts,
+                    text="fallback",
+                    blocks=blocks,
+                )
                 logger.info(response.status_code)
             except errors.SlackApiError as e:
                 logger.error(e)

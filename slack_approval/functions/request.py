@@ -10,7 +10,5 @@ goblet_entrypoint(app)
 def main(request):
     """Forwards requests to slack.
     """
-    slack_request = SlackRequest(
-        request
-    )
+    slack_request = SlackRequest(request)
     slack_request.send_request_message()

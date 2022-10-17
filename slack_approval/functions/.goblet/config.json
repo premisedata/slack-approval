@@ -10,16 +10,14 @@
             "cloudfunction": {
                 "secretEnvironmentVariables": [
                     {
-                        "key": "APPROVERS_CHANNEL_HOOK",
-                        "secret": "channel-webhook",
-                        "version": "latest"
-                    },
-                    {
-                        "key": "REQUESTERS_CHANNEL_HOOK",
-                        "secret": "channel-webhook",
+                        "key": "SLACK_BOT_TOKEN",
+                        "secret": "slack-bot-token",
                         "version": "latest"
                     }
                 ],
+                "environmentVariables": {
+                    "REQUESTERS_CHANNEL": "ABC123"
+                },
                 "serviceAccountEmail": "" 
             }
         },
@@ -38,8 +36,8 @@
                         "version": "latest"
                     },
                     {
-                        "key": "REQUESTERS_CHANNEL_HOOK",
-                        "secret": "channel-webhook",
+                        "key": "SLACK_BOT_TOKEN",
+                        "secret": "slack-bot-token",
                         "version": "latest"
                     }
                 ],
