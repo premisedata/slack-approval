@@ -5,6 +5,7 @@
 
 This python library serves as the basis for managing and deploying a lightweight approval workflow based on Slack and GCP. This library contains two key classes, `SlackRequest` and `SlackProvision` as well as the logic to deploy them to GCP, which is based on [goblet](https://github.com/goblet/goblet). 
 
+Install library with `pip install slack_approval`
 
 ## Slack Approval Flow 
 ______________________
