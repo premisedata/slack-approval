@@ -14,7 +14,7 @@ class SlackRequest:
         self.inputs = request.json
         print(self.inputs)
         self.name = self.inputs["provision_class"]
-        self.approving_team = self.inputs["approving_team"]
+        self.approving_team = None if self.inputs["approving_team"] is None else self.inputs["approving_team"]
         self.value = self.inputs # save inputs before hiding anything
         hide = self.inputs.get("hide")
         if hide:
