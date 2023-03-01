@@ -113,14 +113,14 @@ class SlackRequest:
 
     def get_slack_channels(self, approving_team):
         """Get approvers and requesters channels from environment variables."""
-        try:
-            if approving_team is None:
-                approvers_channel = os.environ["APPROVERS_CHANNEL"]
-                requesters_channel = os.environ["REQUESTERS_CHANNEL"]
-            else:
-                approvers_channel = os.environ[f"{approving_team.upper()}_APPROVERS_CHANNEL"]
-                requesters_channel = os.environ[f"{approving_team.upper()}_REQUESTERS_CHANNEL"]
-            return approvers_channel, requesters_channel
-        except KeyError as e:
-            logger.error(f"Slack channel(s) not found: {e}")
-            raise e
+        # try:
+        if approving_team is None:
+            approvers_channel = os.environ["APPROVERS_CHANNEL"]
+            requesters_channel = os.environ["REQUESTERS_CHANNEL"]
+        else:
+            approvers_channel = os.environ[f"{approving_team.upper()}_APPROVERS_CHANNEL"]
+            requesters_channel = os.environ[f"{approving_team.upper()}_REQUESTERS_CHANNEL"]
+        return approvers_channel, requesters_channel
+        # except KeyError as e:
+        #     logger.error(f"Slack channel(s) not found: {e}")
+        #     raise e
