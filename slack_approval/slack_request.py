@@ -12,6 +12,7 @@ class SlackRequest:
         """requesters_channel only necessary for `pending` messages
         """
         self.inputs = request.json
+        print(self.inputs)
         self.name = self.inputs["provision_class"]
         self.approving_team = self.inputs["approving_team"]
         self.value = self.inputs # save inputs before hiding anything
