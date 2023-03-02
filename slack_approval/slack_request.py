@@ -13,17 +13,21 @@ class SlackRequest:
         """
         self.inputs = request.json
         self.name = self.inputs["provision_class"]
-        self.approving_team = self.inputs.get("approving_team", None)
+        approving_team = self.inputs.get("approving_team", None)
         self.value = self.inputs # save inputs before hiding anything
+
         hide = self.inputs.get("hide")
         if hide:
             logger.info(f"Hidden fields: {hide}")
             for field in hide:
                 self.inputs.pop(field)
             self.inputs.pop("hide")
-        self.inputs.pop("approving_team")
+
+        if approving_team:
+            self.inputs.pop("approving_team")
+
         self.token = os.environ.get("SLACK_BOT_TOKEN")
-        self.approvers_channel, self.requesters_channel = self.get_slack_channels(self.approving_team)
+        self.approvers_channel, self.requesters_channel = self.get_slack_channels(approving_team)
 
     def send_request_message(self):
         slack_web_client = WebClient(self.token)
