@@ -24,6 +24,12 @@ class SlackRequest:
         self.approvers_channel = os.environ[self.inputs.get("approvers_channel", "APPROVERS_CHANNEL")]
         self.requesters_channel = os.environ[self.inputs.get("requesters_channel", "REQUESTERS_CHANNEL")]
 
+        if self.inputs.get("requesters_channel"):
+            self.inputs.pop("requesters_channel")
+        
+        if self.inputs.get("approvers_channel"):
+            self.inputs.pop("approvers_channel")
+
     def send_request_message(self):
         slack_web_client = WebClient(self.token)
         blocks = [
