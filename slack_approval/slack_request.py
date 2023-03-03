@@ -13,21 +13,16 @@ class SlackRequest:
         """
         self.inputs = request.json
         self.name = self.inputs["provision_class"]
-        approving_team = self.inputs.get("approving_team", None)
         self.value = self.inputs # save inputs before hiding anything
-
         hide = self.inputs.get("hide")
         if hide:
             logger.info(f"Hidden fields: {hide}")
             for field in hide:
                 self.inputs.pop(field)
             self.inputs.pop("hide")
-
-        if approving_team:
-            self.inputs.pop("approving_team")
-
         self.token = os.environ.get("SLACK_BOT_TOKEN")
-        self.approvers_channel, self.requesters_channel = self.get_slack_channels(approving_team)
+        self.approvers_channel = os.environ[self.inputs.get("approvers_channel", "APPROVERS_CHANNEL")]
+        self.requesters_channel = os.environ[self.inputs.get("requesters_channel", "REQUESTERS_CHANNEL")]
 
     def send_request_message(self):
         slack_web_client = WebClient(self.token)
@@ -115,17 +110,3 @@ class SlackRequest:
             logger.info(response.status_code)
         except errors.SlackApiError as e:
             logger.error(e)
-
-    def get_slack_channels(self, approving_team):
-        """Get approvers and requesters channels from environment variables."""
-        try:
-            if approving_team is None:
-                approvers_channel = os.environ["APPROVERS_CHANNEL"]
-                requesters_channel = os.environ["REQUESTERS_CHANNEL"]
-            else:
-                approvers_channel = os.environ[f"{approving_team.upper()}_APPROVERS_CHANNEL"]
-                requesters_channel = os.environ[f"{approving_team.upper()}_REQUESTERS_CHANNEL"]
-            return approvers_channel, requesters_channel
-        except KeyError as e:
-            logger.error(f"Slack channel(s) not found: {e}")
-            raise e
