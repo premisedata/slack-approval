@@ -70,7 +70,7 @@ setup(
     author_email=EMAIL,
     python_requires=REQUIRES_PYTHON,
     url=URL,
-    version="0.1.2",
+    version="0.1.0",
     license='MIT',
     classifiers=[
         'License :: OSI Approved :: MIT License',
