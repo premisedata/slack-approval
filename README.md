@@ -42,7 +42,9 @@ Request
       * The value for `provision_class` should be the name of your provision class with spaces
         
         ie. class `ProvisionLBEndpoint` -> `"provision_class": "Provision LB Endpoint"`
-  * Optionally, you can add `approvers_channel` and `requesters_channel` fields in your request to specify the approvers and requesters channels respectively. If not provided, the function will look for APPROVERS_CHANNEL and REQUESTERS_CHANNEL environment variables by default.
+  * Optionally, you can add `approvers_channel` and `requesters_channel` fields in your request to specify the approvers and requesters channels respectively. 
+    * If added, add environment variables with the same values. 
+    * If not provided, the function will look for APPROVERS_CHANNEL and REQUESTERS_CHANNEL environment variables by default.
 
 Example:
 ``` bash
