@@ -13,7 +13,7 @@ class SlackRequest:
         """
         self.inputs = request.json
         self.name = self.inputs["provision_class"]
-        self.value = self.inputs # save inputs before hiding anything
+        self.value = self.inputs.copy() # save inputs before hiding anything
         hide = self.inputs.get("hide")
         if hide:
             logger.info(f"Hidden fields: {hide}")
