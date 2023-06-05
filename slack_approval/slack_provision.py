@@ -19,7 +19,6 @@ class SlackProvision:
         self.inputs = json.loads(action["value"])
         self.ts = self.inputs.pop("ts")
         self.requesters_channel = self.inputs.pop("requesters_channel")
-        self.approvers_channel = self.inputs.pop("approvers_channel")
         self.name = self.inputs["provision_class"]
         self.user = " ".join(
             [s.capitalize() for s in payload["user"]["name"].split(".")]
