@@ -19,7 +19,7 @@ class SlackProvision:
         self.inputs = json.loads(action["value"])
         self.ts = self.inputs.pop("ts")
         self.requesters_channel = self.inputs.pop("requesters_channel")
-        self.approvers_channel = self.inputs.pop("approvers_channel")
+        self.approvers_channel = self.inputs.pop("approvers_channel", None)
         self.name = self.inputs["provision_class"]
         self.user = " ".join(
             [s.capitalize() for s in payload["user"]["name"].split(".")]
@@ -52,7 +52,7 @@ class SlackProvision:
         hide = self.inputs.get("hide")
         if hide:
             for field in hide:
-                self.inputs.pop(field)
+                self.inputs.pop(field, None)
             self.inputs.pop("hide")
         self.send_status_message()
 

@@ -18,7 +18,7 @@ class SlackRequest:
         if hide:
             logger.info(f"Hidden fields: {hide}")
             for field in hide:
-                self.inputs.pop(field)
+                self.inputs.pop(field, None)
             self.inputs.pop("hide")
         self.token = os.environ.get("SLACK_BOT_TOKEN")
         self.approvers_channel = os.environ[self.inputs.get("approvers_channel", "APPROVERS_CHANNEL")]
