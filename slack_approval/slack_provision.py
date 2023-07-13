@@ -52,7 +52,7 @@ class SlackProvision:
         hide = self.inputs.get("hide")
         if hide:
             for field in hide:
-                self.inputs.pop(field)
+                self.inputs.pop(field, None)
             self.inputs.pop("hide")
         self.send_status_message()
 
