@@ -24,7 +24,7 @@ class SlackProvision:
         self.user = " ".join(
             [s.capitalize() for s in payload["user"]["name"].split(".")]
         )
-        logger.info(payload["response_url"])
+        logger.info(payload["user"])
         self.response_url = payload["response_url"]
         self.exception = None
         self.prevent_self_request = payload["prevent-self-request"]
