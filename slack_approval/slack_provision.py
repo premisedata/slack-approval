@@ -26,7 +26,7 @@ class SlackProvision:
         )
         self.response_url = payload["response_url"]
         self.exception = None
-        self.prevent_self_request = payload["prevent-self-request"]
+        self.prevent_self_request = payload["prevent_self_request"]
         self.test = True if "test" in payload else False
         self.user_payload = payload["user"]
 
