@@ -24,11 +24,11 @@ class SlackProvision:
         self.user = " ".join(
             [s.capitalize() for s in payload["user"]["name"].split(".")]
         )
-        logger.info(payload["user"])
         self.response_url = payload["response_url"]
         self.exception = None
         self.prevent_self_request = payload["prevent-self-request"]
         self.test = True if "test" in payload else False
+        self.user_payload = payload["user"]
 
     def is_valid_signature(self, signing_secret):
         """Validates the request from the Slack integration
@@ -39,10 +39,11 @@ class SlackProvision:
         return verifier.is_valid(self.data, timestamp, signature)
 
     def approved(self):
-        logger.info("testing")
+        logger.info(self.user_payload)
         logger.info("request approved")
 
     def rejected(self):
+        logger.info(self.user_payload)
         logger.info("request rejected")
 
     def __call__(self):
