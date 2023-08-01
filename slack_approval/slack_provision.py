@@ -39,10 +39,13 @@ class SlackProvision:
         return verifier.is_valid(self.data, timestamp, signature)
 
     def approved(self):
-        slack_web_client = WebClient(self.token)
-        user_info = slack_web_client.users_info(user=self.user_payload["id"])
-        logger.info(f"User info: {user_info}")
-        logger.info("request approved")
+        try:
+            slack_web_client = WebClient(self.token)
+            user_info = slack_web_client.users_info(user=self.user_payload["id"])
+            logger.info(f"User info: {user_info}")
+            logger.info("request approved")
+        except errors.SlackApiError as e:
+            logger.error(e)
 
     def rejected(self):
         logger.info(self.user_payload)
