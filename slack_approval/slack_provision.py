@@ -39,8 +39,8 @@ class SlackProvision:
         return verifier.is_valid(self.data, timestamp, signature)
 
     def approved(self):
-        slack_client = WebhookClient(self.response_url)
-        user_info = slack_client.users_info(user=self.user_payload["id"])
+        slack_web_client = WebClient(self.token)
+        user_info = slack_web_client.users_info(user=self.user_payload["id"])
         logger.info(f"User info: {user_info}")
         logger.info("request approved")
 
