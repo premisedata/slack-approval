@@ -31,7 +31,6 @@ class SlackProvision:
         self.user_payload = payload["user"]
         self.requester = self.inputs["requester"] if "requester" in self.inputs else ""
 
-        logger.info(json.loads(self.data))
         logger.info(payload)
         # Requester can response depending on flag for prevent self approval and user-requester values
         if not self.can_response():
