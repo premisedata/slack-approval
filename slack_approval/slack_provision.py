@@ -50,6 +50,8 @@ class SlackProvision:
 
     def __call__(self):
         update_state = True
+        hide = self.inputs.get("hide")
+
         try:
             if self.action_id == "Approved":
                 self.approved()
@@ -57,11 +59,11 @@ class SlackProvision:
                 self.rejected()
             elif self.action_id == "Not allowed":
                 update_state = False
+                hide = []
                 logger.info(f"Response not allowed for user {self.user}")
 
         except Exception as e:
             self.exception = e
-        hide = self.inputs.get("hide")
         if hide:
             for field in hide:
                 self.inputs.pop(field, None)
