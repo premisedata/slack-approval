@@ -58,12 +58,7 @@ class SlackProvision:
             elif self.action_id == "Rejected":
                 self.rejected()
             elif self.action_id == "Not allowed":
-                client = WebClient(self.token)
-                response = client.chat_postMessage(
-                    channel=self.requesters_channel,
-                    thread_ts=self.ts,
-                    text="Hello from your app! :tada:"
-                )
+                self.send_not_allowed_message()
                 logger.info(f"Response not allowed for user {self.user}")
                 return
 
@@ -151,5 +146,16 @@ class SlackProvision:
                 return False
             else:
                 return True
+        except errors.SlackApiError as e:
+            logger.error(e)
+
+    def send_not_allowed_message(self):
+        try:
+            client = WebClient(self.token)
+            client.chat_postMessage(
+                channel=self.requesters_channel,
+                thread_ts=self.ts,
+                text=f"User {self.user} not allowed to response (same user as requester). Prevent self approval activated."
+            )
         except errors.SlackApiError as e:
             logger.error(e)
