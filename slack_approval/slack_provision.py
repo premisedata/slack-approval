@@ -57,7 +57,38 @@ class SlackProvision:
             if self.action_id == "Approved":
                 self.approved()
             elif self.action_id == "Rejected":
-                self.rejected()
+                client = WebClient(self.token)
+                client.views_open(
+                    trigger_id=self.payload['trigger_id'],
+                    view={
+                        "type": "modal",
+                        "callback_id": "reason_modal",
+                        "title": {
+                            "type": "plain_text",
+                            "text": "Denial Reason"
+                        },
+                        "blocks": [
+                            {
+                                "type": "input",
+                                "block_id": "reason_block",
+                                "label": {
+                                    "type": "plain_text",
+                                    "text": "Please provide a reason for denial:"
+                                },
+                                "element": {
+                                    "type": "plain_text_input",
+                                    "action_id": "reason_input"
+                                }
+                            }
+                        ],
+                        "submit": {
+                            "type": "plain_text",
+                            "text": "Submit"
+                        }
+                    }
+                )
+                return
+                # self.rejected()
             elif self.action_id == "Not allowed":
                 self.send_not_allowed_message()
                 logger.info(f"Response not allowed for user {self.user}")
