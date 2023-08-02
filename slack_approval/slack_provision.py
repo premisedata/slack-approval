@@ -58,7 +58,6 @@ class SlackProvision:
                 self.approved()
             elif self.action_id == "Rejected":
                 self.rejected()
-                self.view_modal()
             elif self.action_id == "Not allowed":
                 self.send_not_allowed_message()
                 logger.info(f"Response not allowed for user {self.user}")
@@ -162,34 +161,5 @@ class SlackProvision:
         except errors.SlackApiError as e:
             logger.error(e)
 
-    def view_modal(self):
-        client = WebClient(token=self.token)
-        trigger_id = self.payload["trigger_id"]
-        view = {
-            "type": "modal",
-            "callback_id": "modal-id",
-            "title": {
-                "type": "plain_text",
-                "text": "Awesome Modal"
-            },
-            "submit": {
-                "type": "plain_text",
-                "text": "Submit"
-            },
-            "blocks": [
-                {
-                    "type": "input",
-                    "block_id": "b-id",
-                    "label": {
-                        "type": "plain_text",
-                        "text": "Input label",
-                    },
-                    "element": {
-                        "action_id": "a-id",
-                        "type": "plain_text_input",
-                    }
-                }
-            ]
-        }
-        client.views_open(view=view)
+
 
