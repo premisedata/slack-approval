@@ -112,9 +112,10 @@ class SlackProvision:
                 }
             )
         try:
-            slack_client = WebhookClient(self.response_url)
-            response = slack_client.send(text="fallback", blocks=blocks)
-            logger.info(response.status_code)
+            if update_state:
+                slack_client = WebhookClient(self.response_url)
+                response = slack_client.send(text="fallback", blocks=blocks)
+                logger.info(response.status_code)
         except errors.SlackApiError as e:
             logger.error(e)
         try:
