@@ -59,7 +59,15 @@ class SlackProvision:
             elif self.action_id == "Rejected":
                 self.rejected()
             elif self.action_id == "Not allowed":
+                slack_client = WebhookClient(self.response_url)
+
+                response = slack_client.chat_postMessage(
+                    channel=self.requesters_channel,
+                    thread_ts=self.ts,
+                    text="Hello from your app! :tada:"
+                )
                 logger.info(f"Response not allowed for user {self.user}")
+                return
 
         except Exception as e:
             self.exception = e
