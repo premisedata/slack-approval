@@ -130,8 +130,10 @@ class SlackProvision:
             return True
         try:
             slack_web_client = WebClient(self.token)
+            logger.info(self.user_payload["id"])
             user_info = slack_web_client.users_info(user=self.user_payload["id"])
-            user_email = user_info["profile"]["email"]
+            logger.info(user_info)
+            user_email = user_info["user"]["profile"]["email"]
             logger.info(f"user_info = {user_info}")
             logger.info(f"user_email = {user_email} requester = {self.requester}")
             if user_email == self.requester:
