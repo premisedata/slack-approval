@@ -66,7 +66,7 @@ class SlackProvision:
             for field in hide:
                 self.inputs.pop(field, None)
             self.inputs.pop("hide")
-        self.send_status_message()
+        self.send_status_message(update_state)
 
     def send_status_message(self, update_state=True):
         blocks = [
