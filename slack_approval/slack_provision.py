@@ -164,7 +164,7 @@ class SlackProvision:
 
     def view_modal(self):
         client = WebClient(token=self.token)
-        trigger_id = self.payload["trigger_id"],
+        trigger_id = self.payload["trigger_id"]
         view = {
             "type": "modal",
             "callback_id": "modal-id",
@@ -191,5 +191,5 @@ class SlackProvision:
                 }
             ]
         }
-        client.views_open(trigger_id=trigger_id, view=view)
+        client.views_open(view=view)
 
