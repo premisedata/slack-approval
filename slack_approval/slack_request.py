@@ -117,7 +117,7 @@ class SlackRequest:
                 ],
             }
         )
-        blocks.append({{"type": "divider"},
+        blocks.append(
                        {
                            "type": "input",
                            "label": {
@@ -132,7 +132,7 @@ class SlackRequest:
                                    "text": "Type reason for reject"
                                }
                            }
-                       }})
+                       })
         # Send to approvers channel with `approve` and `reject` buttons
         try:
             response = slack_web_client.chat_postMessage(
