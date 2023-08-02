@@ -49,7 +49,7 @@ class SlackProvision:
         logger.info("request rejected")
 
     def __call__(self):
-        logger.info(f"prevent_self_approval input {self.inputs['prevent_self_approval'] if 'prevent_self_approval' in self.inputs else 'nothing comes'}")
+        logger.info(f"prevent_self_approval input {self.inputs['prevent_self_approval'] if 'prevent_self_approval' in self.inputs else 'nothing comes'} type { type(self.inputs['prevent_self_approval']) }")
         try:
             if self.action_id == "Approved":
                 self.approved()
