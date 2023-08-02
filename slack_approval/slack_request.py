@@ -113,25 +113,26 @@ class SlackRequest:
                                 "text": "Stop, I've changed my mind!"
                             }
                         }
-                    },
-                    {
-                        "type": "input",
-                        "label": {
-                            "type": "plain_text",
-                            "text": "Reject"
-                        },
-                        "element": {
-                            "type": "plain_text_input",
-                            "action_id": "reason_response",
-                            "placeholder": {
-                                "type": "plain_text",
-                                "text": "Type reason for reject"
-                            }
-                        }
                     }
                 ],
             }
         )
+        blocks.append({{"type": "divider"},
+                       {
+                           "type": "input",
+                           "label": {
+                               "type": "plain_text",
+                               "text": "Reject"
+                           },
+                           "element": {
+                               "type": "plain_text_input",
+                               "action_id": "reason_response",
+                               "placeholder": {
+                                   "type": "plain_text",
+                                   "text": "Type reason for reject"
+                               }
+                           }
+                       }})
         # Send to approvers channel with `approve` and `reject` buttons
         try:
             response = slack_web_client.chat_postMessage(
