@@ -27,6 +27,7 @@ class SlackProvision:
         self.response_url = payload["response_url"]
         self.exception = None
         self.prevent_self_approval = True if "prevent_self_approval" in self.inputs and self.inputs["prevent_self_approval"] == "true" else False
+
         self.user_payload = payload["user"]
         self.requester = self.inputs["requester"] if "requester" in self.inputs else ""
         #Requester can response depending on flag for prevent self approval and user-requester values
@@ -48,6 +49,7 @@ class SlackProvision:
         logger.info("request rejected")
 
     def __call__(self):
+        logger.info(f"prevent_self_approval input {self.inputs['prevent_self_approval'] if 'prevent_self_approval' in self.inputs else 'nothing comes'}")
         try:
             if self.action_id == "Approved":
                 self.approved()
