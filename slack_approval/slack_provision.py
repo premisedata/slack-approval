@@ -49,12 +49,14 @@ class SlackProvision:
         logger.info("request rejected")
 
     def __call__(self):
+        update_state = True
         try:
             if self.action_id == "Approved":
                 self.approved()
             elif self.action_id == "Rejected":
                 self.rejected()
             elif self.action_id == "Not allowed":
+                update_state = False
                 logger.info(f"Response not allowed for user {self.user}")
 
         except Exception as e:
@@ -66,7 +68,7 @@ class SlackProvision:
             self.inputs.pop("hide")
         self.send_status_message()
 
-    def send_status_message(self):
+    def send_status_message(self, update_state=True):
         blocks = [
             {
                 "type": "header",
@@ -114,14 +116,15 @@ class SlackProvision:
         except errors.SlackApiError as e:
             logger.error(e)
         try:
-            slack_web_client = WebClient(self.token)
-            response = slack_web_client.chat_update(
-                channel=self.requesters_channel,
-                ts=self.ts,
-                text="fallback",
-                blocks=blocks,
-            )
-            logger.info(response.status_code)
+            if update_state:
+                slack_web_client = WebClient(self.token)
+                response = slack_web_client.chat_update(
+                    channel=self.requesters_channel,
+                    ts=self.ts,
+                    text="fallback",
+                    blocks=blocks,
+                )
+                logger.info(response.status_code)
         except errors.SlackApiError as e:
             logger.error(e)
 
