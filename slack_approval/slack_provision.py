@@ -26,9 +26,12 @@ class SlackProvision:
         )
         self.response_url = payload["response_url"]
         self.exception = None
-        self.prevent_self_request = self.inputs["prevent_self_request"]
-        self.test = True if "test" in self.inputs else False
+        self.prevent_self_approval = True if "prevent_self_approval" in self.inputs and self.inputs["prevent_self_approval"] == "true" else False
         self.user_payload = payload["user"]
+        self.requester = self.inputs["requester"] if "requester" in self.inputs else ""
+        #Requester can response depending on flag for prevent self approval and user-requester values
+        if not self.can_response():
+            self.action_id = "Not allowed"
 
     def is_valid_signature(self, signing_secret):
         """Validates the request from the Slack integration
@@ -39,16 +42,9 @@ class SlackProvision:
         return verifier.is_valid(self.data, timestamp, signature)
 
     def approved(self):
-        try:
-            slack_web_client = WebClient(self.token)
-            user_info = slack_web_client.users_info(user=self.user_payload["id"])
-            logger.info(f"User info: {user_info}")
-            logger.info("request approved")
-        except errors.SlackApiError as e:
-            logger.error(e)
+        logger.info("request approved")
 
     def rejected(self):
-        logger.info(self.user_payload)
         logger.info("request rejected")
 
     def __call__(self):
@@ -57,6 +53,9 @@ class SlackProvision:
                 self.approved()
             elif self.action_id == "Rejected":
                 self.rejected()
+            elif self.action_id == "Not allowed":
+                logger.info(f"Response not allowed for user {self.user}")
+
         except Exception as e:
             self.exception = e
         hide = self.inputs.get("hide")
@@ -122,5 +121,19 @@ class SlackProvision:
                 blocks=blocks,
             )
             logger.info(response.status_code)
+        except errors.SlackApiError as e:
+            logger.error(e)
+
+    def can_response(self):
+        if not self.prevent_self_approval:
+            return True
+        try:
+            slack_web_client = WebClient(self.token)
+            user_info = slack_web_client.users_info(user=self.user_payload["id"])
+            user_email = user_info["profile"]["email"]
+            if user_email == self.requester:
+                return False
+            else:
+                return True
         except errors.SlackApiError as e:
             logger.error(e)
