@@ -58,7 +58,7 @@ class SlackProvision:
             elif self.action_id == "Rejected":
                 self.rejected()
             elif self.action_id == "Not allowed":
-                client = WebClient(self.response_url)
+                client = WebClient(self.token)
                 response = client.chat_postMessage(
                     channel=self.requesters_channel,
                     thread_ts=self.ts,
