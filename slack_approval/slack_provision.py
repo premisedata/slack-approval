@@ -30,6 +30,9 @@ class SlackProvision:
 
         self.user_payload = payload["user"]
         self.requester = self.inputs["requester"] if "requester" in self.inputs else ""
+        
+        logger.info(self.data)
+        logger.info(payload)
         # Requester can response depending on flag for prevent self approval and user-requester values
         if not self.can_response():
             self.action_id = "Not allowed"
@@ -49,8 +52,6 @@ class SlackProvision:
         logger.info("request rejected")
 
     def __call__(self):
-        update_state = True
-        hide = self.inputs.get("hide")
 
         try:
             if self.action_id == "Approved":
@@ -58,19 +59,19 @@ class SlackProvision:
             elif self.action_id == "Rejected":
                 self.rejected()
             elif self.action_id == "Not allowed":
-                update_state = False
-                hide = []
                 logger.info(f"Response not allowed for user {self.user}")
 
         except Exception as e:
             self.exception = e
+
+        hide = self.inputs.get("hide")
         if hide:
             for field in hide:
                 self.inputs.pop(field, None)
             self.inputs.pop("hide")
-        self.send_status_message(update_state)
+        self.send_status_message()
 
-    def send_status_message(self, update_state=True):
+    def send_status_message(self):
         blocks = [
             {
                 "type": "header",
@@ -112,22 +113,20 @@ class SlackProvision:
                 }
             )
         try:
-            if update_state:
-                slack_client = WebhookClient(self.response_url)
-                response = slack_client.send(text="fallback", blocks=blocks)
-                logger.info(response.status_code)
+            slack_client = WebhookClient(self.response_url)
+            response = slack_client.send(text="fallback", blocks=blocks)
+            logger.info(response.status_code)
         except errors.SlackApiError as e:
             logger.error(e)
         try:
-            if update_state:
-                slack_web_client = WebClient(self.token)
-                response = slack_web_client.chat_update(
-                    channel=self.requesters_channel,
-                    ts=self.ts,
-                    text="fallback",
-                    blocks=blocks,
-                )
-                logger.info(response.status_code)
+            slack_web_client = WebClient(self.token)
+            response = slack_web_client.chat_update(
+                channel=self.requesters_channel,
+                ts=self.ts,
+                text="fallback",
+                blocks=blocks,
+            )
+            logger.info(response.status_code)
         except errors.SlackApiError as e:
             logger.error(e)
 
