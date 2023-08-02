@@ -111,26 +111,24 @@ class SlackRequest:
                             "deny": {
                                 "type": "plain_text",
                                 "text": "Stop, I've changed my mind!"
-                            },
-                            "reason": {
-                                {
-                                    "type": "input",
-                                    "label": {
-                                        "type": "plain_text",
-                                        "text": "Reject"
-                                    },
-                                    "element": {
-                                        "type": "plain_text_input",
-                                        "action_id": "reason_response",
-                                        "placeholder": {
-                                            "type": "plain_text",
-                                            "text": "Type reason"
-                                        }
-                                    }
-                                }
                             }
                         }
                     },
+                    {
+                        "type": "input",
+                        "label": {
+                            "type": "plain_text",
+                            "text": "Reject"
+                        },
+                        "element": {
+                            "type": "plain_text_input",
+                            "action_id": "reason_response",
+                            "placeholder": {
+                                "type": "plain_text",
+                                "text": "Type reason for reject"
+                            }
+                        }
+                    }
                 ],
             }
         )
