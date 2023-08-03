@@ -73,7 +73,7 @@ class SlackProvision:
                                 "block_id": "reason_block",
                                 "label": {
                                     "type": "plain_text",
-                                    "text": "Please provide a reason for denial:"
+                                    "text": "Please provide a reason for deny:"
                                 },
                                 "element": {
                                     "type": "plain_text_input",
