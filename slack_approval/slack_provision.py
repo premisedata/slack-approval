@@ -61,7 +61,6 @@ class SlackProvision:
             elif self.action_id == "Rejected":
                 self.open_reject_reason_modal()
                 return 200
-                # self.rejected()
             elif self.action_id == "Not allowed":
                 self.send_not_allowed_message()
                 logger.info(f"Response not allowed for user {self.user}")
@@ -232,7 +231,6 @@ class SlackProvision:
         reason = self.payload['view']['state']['values']['reason_block']['reject_reason_input']['value']
         self.action_id = f"Rejected with reason: {reason}"
         self.exception = None
-        return
         try:
             client = WebClient(self.token)
             client.chat_postMessage(
@@ -243,7 +241,7 @@ class SlackProvision:
         except errors.SlackApiError as e:
             logger.error(e)
 
-        # self.send_status_message()
+        self.send_status_message()
 
 
     def from_reject_response(self):
