@@ -233,7 +233,7 @@ class SlackProvision:
         reason = self.payload['view']['state']['values']['reason_block']['reject_reason_input']['value']
         self.action_id = f"Rejected with reason: {reason}"
         self.exception = None
-
+        return
         try:
             client = WebClient(self.token)
             client.chat_postMessage(
@@ -244,7 +244,7 @@ class SlackProvision:
         except errors.SlackApiError as e:
             logger.error(e)
 
-        self.send_status_message()
+        # self.send_status_message()
 
 
     def from_reject_response(self):
