@@ -17,7 +17,7 @@ class SlackProvision:
         self.headers = request.headers
         self.payload = json.loads(request.form["payload"])
         if self.from_reject_response():
-            return 200
+            return
             # logger.info(f"Reject response. Payload = {self.payload}")
             self.reject_with_reason()
             # return
@@ -62,12 +62,12 @@ class SlackProvision:
                 self.approved()
             elif self.action_id == "Rejected":
                 self.open_reject_reason_modal()
-                return
+                return 200
                 # self.rejected()
             elif self.action_id == "Not allowed":
                 self.send_not_allowed_message()
                 logger.info(f"Response not allowed for user {self.user}")
-                return
+                return 200
             else:
                 logger.info(f"Action not found called by {self.user}")
                 return 200
@@ -82,6 +82,7 @@ class SlackProvision:
                 self.inputs.pop(field, None)
             self.inputs.pop("hide")
         self.send_status_message()
+        return 200
 
     def send_status_message(self):
         blocks = [
