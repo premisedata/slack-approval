@@ -209,7 +209,6 @@ class SlackProvision:
 
     def reject_with_reason(self):
         logger.info("reject_with_reason")
-        return
         try:
             metadata = json.loads(self.payload['view']['private_metadata'])
             channel_id = metadata["channel_id"]
@@ -224,6 +223,7 @@ class SlackProvision:
         except errors.SlackApiError as e:
             logger.error(e)
         self.action_id = "Rejected with reason"
+        self.send_status_message()
         self.rejected()
 
     def from_reject_response(self):
