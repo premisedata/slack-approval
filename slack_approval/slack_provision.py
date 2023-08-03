@@ -15,6 +15,7 @@ class SlackProvision:
         self.headers = request.headers
         payload = json.loads(request.form["payload"])
         self.payload = payload
+        logger.info(self.payload)
         action = payload["actions"][0]
         self.action_id = action["action_id"]
         self.inputs = json.loads(action["value"])
@@ -32,7 +33,6 @@ class SlackProvision:
         self.user_payload = payload["user"]
         self.requester = self.inputs["requester"] if "requester" in self.inputs else ""
 
-        logger.info(payload)
         # Requester can response depending on flag for prevent self approval and user-requester values
         if not self.can_response():
             self.action_id = "Not allowed"
