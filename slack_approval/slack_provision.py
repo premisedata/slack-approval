@@ -175,44 +175,47 @@ class SlackProvision:
         private_metadata = {
             "channel_id": self.payload['channel']['id'],
             "message_ts": self.payload['message']['ts'],
-            "name": self.payload["provision_class"],
+            "name": self.inputs["provision_class"],
             "inputs": self.inputs,
             "user": self.user,
             "response_url": self.response_url,
             "requesters_channel": self.requesters_channel,
             "token": self.token
             }
-        client = WebClient(self.token)
-        client.views_open(
-            trigger_id=self.payload['trigger_id'],
-            view={
-                "type": "modal",
-                "callback_id": "reject_reason_modal",
-                "private_metadata": json.dumps(private_metadata),
-                "title": {
-                    "type": "plain_text",
-                    "text": "Deny Reason"
-                },
-                "blocks": [
-                    {
-                        "type": "input",
-                        "block_id": "reason_block",
-                        "label": {
-                            "type": "plain_text",
-                            "text": "Please provide a reason for deny:"
-                        },
-                        "element": {
-                            "type": "plain_text_input",
-                            "action_id": "reject_reason_input"
+        try:
+            client = WebClient(self.token)
+            client.views_open(
+                trigger_id=self.payload['trigger_id'],
+                view={
+                    "type": "modal",
+                    "callback_id": "reject_reason_modal",
+                    "private_metadata": json.dumps(private_metadata),
+                    "title": {
+                        "type": "plain_text",
+                        "text": "Deny Reason"
+                    },
+                    "blocks": [
+                        {
+                            "type": "input",
+                            "block_id": "reason_block",
+                            "label": {
+                                "type": "plain_text",
+                                "text": "Please provide a reason for deny:"
+                            },
+                            "element": {
+                                "type": "plain_text_input",
+                                "action_id": "reject_reason_input"
+                            }
                         }
+                    ],
+                    "submit": {
+                        "type": "plain_text",
+                        "text": "Submit"
                     }
-                ],
-                "submit": {
-                    "type": "plain_text",
-                    "text": "Submit"
                 }
-            }
-        )
+            )
+        except errors.SlackApiError as e:
+            logger.error(e)
 
     def reject_with_reason(self):
         logger.info("reject_with_reason")
