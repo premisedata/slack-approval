@@ -31,9 +31,7 @@ class SlackProvision:
         self.requesters_channel = self.inputs.pop("requesters_channel")
         logger.info(f"Approve or Reject or Not Allowd action_id payload = {self.payload}")
         self.approvers_channel = self.inputs.pop("approvers_channel", None)
-        self.user = " ".join(
-            [s.capitalize() for s in self.payload["user"]["name"].split(".")]
-        )
+        self.user = self.parse_user()
 
         self.exception = None
         self.prevent_self_approval = self.inputs.get("prevent_self_approval", False)
@@ -174,13 +172,23 @@ class SlackProvision:
             logger.error(e)
 
     def open_reject_reason_modal(self):
+        private_metadata = {
+            "channel_id": self.payload['channel']['id'],
+            "message_ts": self.payload['message']['ts'],
+            "name": self.payload["provision_class"],
+            "inputs": self.inputs,
+            "user": self.user,
+            "response_url": self.response_url,
+            "requesters_channel": self.requesters_channel,
+            "token": self.token
+            }
         client = WebClient(self.token)
         client.views_open(
             trigger_id=self.payload['trigger_id'],
             view={
                 "type": "modal",
                 "callback_id": "reject_reason_modal",
-                "private_metadata": json.dumps({"channel_id": self.payload['channel']['id'], "message_ts": self.payload['message']['ts']}),
+                "private_metadata": json.dumps(private_metadata),
                 "title": {
                     "type": "plain_text",
                     "text": "Deny Reason"
@@ -208,11 +216,18 @@ class SlackProvision:
 
     def reject_with_reason(self):
         logger.info("reject_with_reason")
+        metadata = json.loads(self.payload['view']['private_metadata'])
+        channel_id = metadata["channel_id"]
+        ts = metadata["message_ts"]
+        self.name = metadata["provision_class"]
+        self.inputs = metadata["inputs"]
+        self.user = metadata["user"]
+        self.response_url = metadata["response_url"]
+        self.requesters_channel = metadata["requesters_channel"]
+        self.token = metadata["token"]
+        reason = self.payload['view']['state']['values']['reason_block']['reject_reason_input']['value']
+        self.action_id = "Rejected with reason"
         try:
-            metadata = json.loads(self.payload['view']['private_metadata'])
-            channel_id = metadata["channel_id"]
-            ts = metadata["message_ts"]
-            reason = self.payload['view']['state']['values']['reason_block']['reject_reason_input']['value']
             client = WebClient(self.token)
             client.chat_postMessage(
                 channel=channel_id,
@@ -221,7 +236,7 @@ class SlackProvision:
             )
         except errors.SlackApiError as e:
             logger.error(e)
-        self.action_id = "Rejected with reason"
+
         self.send_status_message()
         self.rejected()
 
@@ -230,3 +245,8 @@ class SlackProvision:
 
     def load_payload(self):
         self.name = self.inputs["provision_class"]
+
+    def parse_user(self):
+        return " ".join(
+            [s.capitalize() for s in self.payload["user"]["name"].split(".")]
+        )
