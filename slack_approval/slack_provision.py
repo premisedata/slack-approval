@@ -230,6 +230,8 @@ class SlackProvision:
         self.token = metadata["token"]
         reason = self.payload['view']['state']['values']['reason_block']['reject_reason_input']['value']
         self.action_id = "Rejected with reason"
+        self.exception = None
+
         try:
             client = WebClient(self.token)
             client.chat_postMessage(
