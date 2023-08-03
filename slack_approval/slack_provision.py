@@ -15,7 +15,10 @@ class SlackProvision:
         self.headers = request.headers
         payload = json.loads(request.form["payload"])
         self.payload = payload
+        self.response_url = self.payload["response_url"]
+        self.user_payload = payload["user"]
         logger.info(self.payload)
+
         action = payload["actions"][0]
         self.action_id = action["action_id"]
         self.inputs = json.loads(action["value"])
@@ -24,13 +27,11 @@ class SlackProvision:
         self.approvers_channel = self.inputs.pop("approvers_channel", None)
         self.name = self.inputs["provision_class"]
         self.user = " ".join(
-            [s.capitalize() for s in payload["user"]["name"].split(".")]
+            [s.capitalize() for s in self.payload["user"]["name"].split(".")]
         )
-        self.response_url = payload["response_url"]
+
         self.exception = None
         self.prevent_self_approval = self.inputs.get("prevent_self_approval", False)
-
-        self.user_payload = payload["user"]
         self.requester = self.inputs["requester"] if "requester" in self.inputs else ""
 
         # Requester can response depending on flag for prevent self approval and user-requester values
@@ -57,38 +58,7 @@ class SlackProvision:
             if self.action_id == "Approved":
                 self.approved()
             elif self.action_id == "Rejected":
-                client = WebClient(self.token)
-                client.views_open(
-                    trigger_id=self.payload['trigger_id'],
-                    view={
-                        "type": "modal",
-                        "callback_id": "reason_modal",
-                        "ts": self.ts,
-                        "requesters_channel":self.requesters_channel,
-                        "title": {
-                            "type": "plain_text",
-                            "text": "Denial Reason"
-                        },
-                        "blocks": [
-                            {
-                                "type": "input",
-                                "block_id": "reason_block",
-                                "label": {
-                                    "type": "plain_text",
-                                    "text": "Please provide a reason for deny:"
-                                },
-                                "element": {
-                                    "type": "plain_text_input",
-                                    "action_id": "reason_input"
-                                }
-                            }
-                        ],
-                        "submit": {
-                            "type": "plain_text",
-                            "text": "Submit"
-                        }
-                    }
-                )
+                self.open_reason_reject_modal()
                 return
                 # self.rejected()
             elif self.action_id == "Not allowed":
@@ -193,6 +163,39 @@ class SlackProvision:
             )
         except errors.SlackApiError as e:
             logger.error(e)
+
+    def open_reason_reject_modal(self):
+        client = WebClient(self.token)
+        client.views_open(
+            trigger_id=self.payload['trigger_id'],
+            view={
+                "type": "modal",
+                "callback_id": "reason_modal",
+                "ts": self.ts,
+                "title": {
+                    "type": "plain_text",
+                    "text": "Denial Reason"
+                },
+                "blocks": [
+                    {
+                        "type": "input",
+                        "block_id": "reason_block",
+                        "label": {
+                            "type": "plain_text",
+                            "text": "Please provide a reason for deny:"
+                        },
+                        "element": {
+                            "type": "plain_text_input",
+                            "action_id": "reason_input"
+                        }
+                    }
+                ],
+                "submit": {
+                    "type": "plain_text",
+                    "text": "Submit"
+                }
+            }
+        )
 
 
 
