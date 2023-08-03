@@ -12,12 +12,14 @@ def main(request):
     """
     slack_provision = SlackProvision(request)
     # validate request using the signature secret
-    # if not slack_provision.is_valid_signature(os.environ.get("SIGNING_SECRET")):
-    #     return Response("Forbidden", status_code=403)
+    if not slack_provision.is_valid_signature(os.environ.get("SIGNING_SECRET")):
+        return Response("Forbidden", status_code=403)
 
     if hasattr(slack_provision, "name"):
         try:
             slack_provision.__class__ = globals()[slack_provision.name.replace(" ", "")]
             slack_provision()
         except Exception as e:
-            return
+            return Response("OK", status_code=200)
+    return Response("OK", status_code=200)
+
