@@ -70,7 +70,7 @@ class SlackProvision:
                 return
             else:
                 logger.info(f"Action not found called by {self.user}")
-                return
+                return 200
 
         except Exception as e:
             self.exception = e
