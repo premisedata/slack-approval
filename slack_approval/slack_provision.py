@@ -29,9 +29,6 @@ class SlackProvision:
         self.ts = self.inputs.pop("ts")
         self.requesters_channel = self.inputs.pop("requesters_channel")
         logger.info(f"Approve or Reject or Not Allowd action_id payload = {self.payload}")
-        return
-
-
         self.approvers_channel = self.inputs.pop("approvers_channel", None)
         self.user = " ".join(
             [s.capitalize() for s in self.payload["user"]["name"].split(".")]
