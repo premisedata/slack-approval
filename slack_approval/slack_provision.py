@@ -77,6 +77,7 @@ class SlackProvision:
 
         except Exception as e:
             self.exception = e
+            logger.error(e)
 
         hide = self.inputs.get("hide")
         if hide:
