@@ -25,8 +25,6 @@ class SlackProvision:
             self.reject_with_reason()
             return
 
-        reason = payload['view']['state']['values']['reason_block']['reason_input']['value']
-
         action = payload["actions"][0]
         self.action_id = action["action_id"]
         self.inputs = json.loads(action["value"])
