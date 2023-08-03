@@ -8,6 +8,8 @@ logger = logging.getLogger("slack_provision")
 logger.setLevel(logging.DEBUG)
 
 
+
+
 class SlackProvision:
     def __init__(self, request, requesters_channel=None):
         self.token = os.environ.get("SLACK_BOT_TOKEN")
@@ -18,6 +20,12 @@ class SlackProvision:
         self.response_url = self.payload["response_url"]
         self.user_payload = payload["user"]
         logger.info(self.payload)
+
+        if self.from_reject_response():
+            self.reject_with_reason()
+            return
+
+        reason = payload['view']['state']['values']['reason_block']['reason_input']['value']
 
         action = payload["actions"][0]
         self.action_id = action["action_id"]
@@ -58,7 +66,7 @@ class SlackProvision:
             if self.action_id == "Approved":
                 self.approved()
             elif self.action_id == "Rejected":
-                self.open_reason_reject_modal()
+                self.open_reject_reason_modal()
                 return
                 # self.rejected()
             elif self.action_id == "Not allowed":
@@ -164,17 +172,17 @@ class SlackProvision:
         except errors.SlackApiError as e:
             logger.error(e)
 
-    def open_reason_reject_modal(self):
+    def open_reject_reason_modal(self):
         client = WebClient(self.token)
         client.views_open(
             trigger_id=self.payload['trigger_id'],
             view={
                 "type": "modal",
-                "callback_id": "reason_modal",
-                "ts": self.ts,
+                "callback_id": "reject_reason_modal",
+                "private_metadata": json.dumps({"channel_id": self.payload['channel']['id'], "message_ts": self.payload['message']['ts']}),
                 "title": {
                     "type": "plain_text",
-                    "text": "Denial Reason"
+                    "text": "Deny Reason"
                 },
                 "blocks": [
                     {
@@ -186,7 +194,7 @@ class SlackProvision:
                         },
                         "element": {
                             "type": "plain_text_input",
-                            "action_id": "reason_input"
+                            "action_id": "reject_reason_input"
                         }
                     }
                 ],
@@ -197,5 +205,21 @@ class SlackProvision:
             }
         )
 
+    def reject_with_reason(self):
+        try:
+            self.metadata = json.loads(self.payload['view']['private_metadata'])
+            self.channel_id = self.metadata["channel_id"]
+            self.ts = self.metadata["message_ts"]
+            reason = self.payload['view']['state']['values']['reason_block']['reject_reason_input']['value']
+            client = WebClient(self.payload["token"])
+            client.chat_postMessage(
+                channel=self.channel_id,
+                thread_ts=self.ts,
+                text=f"Reason for denial: {reason}"
+            )
+        except errors.SlackApiError as e:
+            logger.error(e)
+        self.rejected()
 
-
+    def from_reject_response(self):
+        return "view" in self.payload and "callback_id" in self.payload and self["callback_id"] == "reject_reason_modal"
