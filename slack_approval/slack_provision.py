@@ -18,6 +18,7 @@ class SlackProvision:
         self.payload = json.loads(request.form["payload"])
         if self.from_reject_response():
             logger.info(f"Reject response. Payload = {self.payload}")
+            self.reject_with_reason()
             # self.reject_with_reason()
             return
         self.user_payload = self.payload["user"]
