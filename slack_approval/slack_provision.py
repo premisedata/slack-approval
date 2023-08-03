@@ -219,4 +219,4 @@ class SlackProvision:
         self.rejected()
 
     def from_reject_response(self):
-        return "view" in self.payload and "callback_id" in self.payload and self["callback_id"] == "reject_reason_modal"
+        return "view" in self.payload and "callback_id" in self.payload and self.payload["callback_id"] == "reject_reason_modal"
