@@ -236,7 +236,7 @@ class SlackProvision:
             client = WebClient(self.token)
             client.chat_postMessage(
                 channel=channel_id,
-                thread_ts=ts,
+                thread_ts=self.ts,
                 text=f"Reason for denial: {reason}"
             )
         except errors.SlackApiError as e:
