@@ -71,6 +71,9 @@ class SlackProvision:
                 self.send_not_allowed_message()
                 logger.info(f"Response not allowed for user {self.user}")
                 return
+            elif self.action_id == "Rejected with reason":
+                logger.info(f"Rejected with reason by {self.user}")
+                return
 
         except Exception as e:
             self.exception = e
@@ -217,6 +220,7 @@ class SlackProvision:
             )
         except errors.SlackApiError as e:
             logger.error(e)
+        self.action_id = "Rejected with reason"
         self.rejected()
 
     def from_reject_response(self):
