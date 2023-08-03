@@ -221,7 +221,7 @@ class SlackProvision:
         logger.info("reject_with_reason")
         metadata = json.loads(self.payload['view']['private_metadata'])
         channel_id = metadata["channel_id"]
-        ts = metadata["message_ts"]
+        self.ts = metadata["message_ts"]
         self.inputs = metadata["inputs"]
         self.name = self.inputs["provision_class"]
         self.user = metadata["user"]
@@ -229,7 +229,7 @@ class SlackProvision:
         self.requesters_channel = metadata["requesters_channel"]
         self.token = metadata["token"]
         reason = self.payload['view']['state']['values']['reason_block']['reject_reason_input']['value']
-        self.action_id = "Rejected with reason"
+        self.action_id = f"Rejected with reason: {reason}"
         self.exception = None
 
         try:
