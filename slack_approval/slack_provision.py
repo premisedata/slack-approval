@@ -17,7 +17,6 @@ class SlackProvision:
         self.headers = request.headers
         self.payload = json.loads(request.form["payload"])
         if self.from_reject_response():
-            self.reject_with_reason()
             return
         self.user_payload = self.payload["user"]
         self.action = self.payload["actions"][0]
@@ -66,6 +65,7 @@ class SlackProvision:
                 logger.info(f"Response not allowed for user {self.user}")
                 return 200
             else:
+                self.reject_with_reason()
                 logger.info(f"Action not found called by {self.user}")
                 return 200
 
