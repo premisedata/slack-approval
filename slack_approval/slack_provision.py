@@ -64,7 +64,7 @@ class SlackProvision:
                         "type": "modal",
                         "callback_id": "reason_modal",
                         "ts": self.ts,
-                        "requesters_channel":self.requesters_channel
+                        "requesters_channel":self.requesters_channel,
                         "title": {
                             "type": "plain_text",
                             "text": "Denial Reason"
