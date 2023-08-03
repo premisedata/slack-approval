@@ -17,20 +17,20 @@ class SlackProvision:
         self.headers = request.headers
         self.payload = json.loads(request.form["payload"])
         self.user_payload = self.payload["user"]
+        self.action = self.payload["actions"][0]
+        self.inputs = json.loads(self.action["value"])
+        self.name = self.inputs["provision_class"]
+        self.response_url = self.payload["response_url"]
+        self.action_id = self.action["action_id"]
+        self.ts = self.inputs.pop("ts")
+        self.requesters_channel = self.inputs.pop("requesters_channel")
         logger.info(self.payload)
         return
         if self.from_reject_response():
             self.reject_with_reason()
             return
 
-        action = self.payload["actions"][0]
-        self.response_url = self.payload["response_url"]
-        self.action_id = action["action_id"]
-        self.inputs = json.loads(action["value"])
-        self.ts = self.inputs.pop("ts")
-        self.requesters_channel = self.inputs.pop("requesters_channel")
         self.approvers_channel = self.inputs.pop("approvers_channel", None)
-        self.name = self.inputs["provision_class"]
         self.user = " ".join(
             [s.capitalize() for s in self.payload["user"]["name"].split(".")]
         )
@@ -219,4 +219,4 @@ class SlackProvision:
         self.rejected()
 
     def from_reject_response(self):
-        return "view" in self.payload and "callback_id" in self.payload and self.payload["callback_id"] == "reject_reason_modal"
+        return self.payload["type"] == "view_submission" and "view" in self.payload and "callback_id" in self.payload["view_submisson"] and self.payload["view_submission"]["callback_id"] == "reject_reason_modal"
