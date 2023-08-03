@@ -71,8 +71,8 @@ class SlackProvision:
                 self.send_not_allowed_message()
                 logger.info(f"Response not allowed for user {self.user}")
                 return
-            elif self.action_id == "Rejected with reason":
-                logger.info(f"Rejected with reason by {self.user}")
+            else:
+                logger.info(f"Action not found called by {self.user}")
                 return
 
         except Exception as e:
@@ -207,6 +207,8 @@ class SlackProvision:
         )
 
     def reject_with_reason(self):
+        logger.info("reject_with_reason")
+        return
         try:
             metadata = json.loads(self.payload['view']['private_metadata'])
             channel_id = metadata["channel_id"]
