@@ -16,6 +16,14 @@ class SlackProvision:
         self.data = request.get_data()
         self.headers = request.headers
         self.payload = json.loads(request.form["payload"])
+        logger.info(self.payload)
+        return
+        self.requesters_channel = self.inputs.pop("requesters_channel")
+        return
+        if self.from_reject_response():
+            self.reject_with_reason()
+            return
+
         self.user_payload = self.payload["user"]
         self.action = self.payload["actions"][0]
         self.inputs = json.loads(self.action["value"])
@@ -23,12 +31,6 @@ class SlackProvision:
         self.response_url = self.payload["response_url"]
         self.action_id = self.action["action_id"]
         self.ts = self.inputs.pop("ts")
-        self.requesters_channel = self.inputs.pop("requesters_channel")
-        logger.info(self.payload)
-        return
-        if self.from_reject_response():
-            self.reject_with_reason()
-            return
 
         self.approvers_channel = self.inputs.pop("approvers_channel", None)
         self.user = " ".join(
