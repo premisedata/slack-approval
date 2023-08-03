@@ -16,14 +16,10 @@ class SlackProvision:
         self.data = request.get_data()
         self.headers = request.headers
         self.payload = json.loads(request.form["payload"])
-        logger.info(self.payload)
-        return
-        self.requesters_channel = self.inputs.pop("requesters_channel")
-        return
         if self.from_reject_response():
-            self.reject_with_reason()
+            logger.info(f"Reject response. Payload = {self.payload}")
+            # self.reject_with_reason()
             return
-
         self.user_payload = self.payload["user"]
         self.action = self.payload["actions"][0]
         self.inputs = json.loads(self.action["value"])
@@ -31,6 +27,10 @@ class SlackProvision:
         self.response_url = self.payload["response_url"]
         self.action_id = self.action["action_id"]
         self.ts = self.inputs.pop("ts")
+        self.requesters_channel = self.inputs.pop("requesters_channel")
+        logger.info(f"Approve or Reject or Not Allowd action_id payload = {self.payload}")
+        return
+
 
         self.approvers_channel = self.inputs.pop("approvers_channel", None)
         self.user = " ".join(
@@ -206,14 +206,14 @@ class SlackProvision:
 
     def reject_with_reason(self):
         try:
-            self.metadata = json.loads(self.payload['view']['private_metadata'])
-            self.channel_id = self.metadata["channel_id"]
-            self.ts = self.metadata["message_ts"]
+            metadata = json.loads(self.payload['view']['private_metadata'])
+            channel_id = metadata["channel_id"]
+            ts = metadata["message_ts"]
             reason = self.payload['view']['state']['values']['reason_block']['reject_reason_input']['value']
             client = WebClient(self.payload["token"])
             client.chat_postMessage(
-                channel=self.channel_id,
-                thread_ts=self.ts,
+                channel=channel_id,
+                thread_ts=ts,
                 text=f"Reason for denial: {reason}"
             )
         except errors.SlackApiError as e:
