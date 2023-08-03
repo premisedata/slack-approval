@@ -15,17 +15,16 @@ class SlackProvision:
         self.token = os.environ.get("SLACK_BOT_TOKEN")
         self.data = request.get_data()
         self.headers = request.headers
-        payload = json.loads(request.form["payload"])
-        self.payload = payload
-        self.response_url = self.payload["response_url"]
-        self.user_payload = payload["user"]
+        self.payload = json.loads(request.form["payload"])
+        self.user_payload = self.payload["user"]
         logger.info(self.payload)
 
         if self.from_reject_response():
             self.reject_with_reason()
             return
 
-        action = payload["actions"][0]
+        action = self.payload["actions"][0]
+        self.response_url = self.payload["response_url"]
         self.action_id = action["action_id"]
         self.inputs = json.loads(action["value"])
         self.ts = self.inputs.pop("ts")
