@@ -20,6 +20,6 @@ def main(request):
             slack_provision.__class__ = globals()[slack_provision.name.replace(" ", "")]
             slack_provision()
         except Exception as e:
-            return Response("OK", status_code=200)
+            return Response("ERROR", status_code=400)
     return Response("OK", status_code=200)
 
