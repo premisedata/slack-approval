@@ -125,22 +125,22 @@ class SlackProvision:
             )
         try:
             slack_client = WebhookClient(self.response_url)
-            #response = slack_client.send(text="fallback", blocks=blocks)
-            #logger.info(response.status_code)
+            response = slack_client.send(text="fallback", blocks=blocks)
+            logger.info(response.status_code)
         except errors.SlackApiError as e:
             logger.error(e)
-        # try:
-        #     #slack_web_client = WebClient(self.token)
-        #     #response = slack_web_client.chat_update(
-        #     #     channel=self.requesters_channel,
-        #     #     ts=self.ts,
-        #     #     text="fallback",
-        #     #     blocks=blocks,
-        #     # )
-        #     #logger.info(response.status_code)
-        #     #return response.status_code
-        # except errors.SlackApiError as e:
-        #     logger.error(e)
+        try:
+            slack_web_client = WebClient(self.token)
+            response = slack_web_client.chat_update(
+                channel=self.requesters_channel,
+                ts=self.ts,
+                text="fallback",
+                blocks=blocks,
+            )
+            logger.info(response.status_code)
+            return response.status_code
+        except errors.SlackApiError as e:
+            logger.error(e)
         return 200
 
     def can_response(self):

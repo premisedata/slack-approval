@@ -15,6 +15,6 @@ def main(request):
     # if not slack_provision.is_valid_signature(os.environ.get("SIGNING_SECRET")):
     #     return Response("Forbidden", status_code=403)
 
-    if slack_provision.name != "":
+    if slack_provision.name and slack_provision.name != "" and slack_provision.name != "Slack Provision":
         slack_provision.__class__ = globals()[slack_provision.name.replace(" ", "")]
-    slack_provision()
+        slack_provision()
