@@ -139,8 +139,10 @@ class SlackProvision:
                 blocks=blocks,
             )
             logger.info(response.status_code)
+            return response.status_code
         except errors.SlackApiError as e:
             logger.error(e)
+        return 200
 
     def can_response(self):
         if not self.prevent_self_approval:
@@ -243,7 +245,7 @@ class SlackProvision:
             logger.error(e)
 
         self.send_status_message()
-        self.rejected()
+
 
     def from_reject_response(self):
         return self.payload["type"] == "view_submission" and "view" in self.payload and "callback_id" in self.payload["view"] and self.payload["view"]["callback_id"] == "reject_reason_modal"
