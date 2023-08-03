@@ -208,7 +208,7 @@ class SlackProvision:
             channel_id = metadata["channel_id"]
             ts = metadata["message_ts"]
             reason = self.payload['view']['state']['values']['reason_block']['reject_reason_input']['value']
-            client = WebClient(self.payload["token"])
+            client = WebClient(self.token)
             client.chat_postMessage(
                 channel=channel_id,
                 thread_ts=ts,
