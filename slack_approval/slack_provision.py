@@ -197,7 +197,7 @@ class SlackProvision:
                     "private_metadata": json.dumps(private_metadata),
                     "title": {
                         "type": "plain_text",
-                        "text": "Deny Reason"
+                        "text": "Reject Reason"
                     },
                     "blocks": [
                         {
