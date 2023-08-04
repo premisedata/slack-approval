@@ -186,7 +186,7 @@ class SlackProvision:
             }
         try:
             client = WebClient(self.token)
-            client.views_open(
+            response = client.views_open(
                 trigger_id=self.payload['trigger_id'],
                 view={
                     "type": "modal",
@@ -216,6 +216,7 @@ class SlackProvision:
                     }
                 }
             )
+            logger.info(f"passed away {response}")
         except errors.SlackApiError as e:
             logger.error(e)
 
