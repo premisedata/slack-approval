@@ -205,7 +205,7 @@ class SlackProvision:
                             "block_id": "reason_block",
                             "label": {
                                 "type": "plain_text",
-                                "text": "Please provide a reason for deny:"
+                                "text": "Please provide a reason for rejection:"
                             },
                             "element": {
                                 "type": "plain_text_input",
@@ -242,7 +242,7 @@ class SlackProvision:
             client.chat_postMessage(
                 channel=channel_id,
                 thread_ts=self.ts,
-                text=f"Reason for denial: {reason}"
+                text=f"Reason for rejection: {reason}"
             )
         except errors.SlackApiError as e:
             logger.error(e)
