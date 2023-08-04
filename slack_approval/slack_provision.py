@@ -199,7 +199,6 @@ class SlackProvision:
                     "type": "modal",
                     "callback_id": "reject_reason_modal",
                     "private_metadata": json.dumps(private_metadata),
-                    "response_action": "clear",
                     "title": {
                         "type": "plain_text",
                         "text": "Deny Reason"

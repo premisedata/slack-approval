@@ -23,6 +23,6 @@ def main(request):
             slack_provision()
         except Exception as e:
             logger.info(f"Error {e}")
-            return Response("ERROR", status_code=400)
+            return Response("OK", status_code=200)
     return Response("OK", status_code=200)
 
