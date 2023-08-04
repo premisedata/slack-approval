@@ -51,41 +51,6 @@ class SlackRequest:
             if key != "provision_class"
         ]
         blocks.extend(input_blocks)
-        view_modal = {
-  "type": "modal",
-  "callback_id": "gratitude-modal",
-  "title": {
-    "type": "plain_text",
-    "text": "Gratitude Box",
-    "emoji": True
-  },
-  "submit": {
-    "type": "plain_text",
-    "text": "Submit",
-    "emoji": True
-  },
-  "close": {
-    "type": "plain_text",
-    "text": "Cancel",
-    "emoji": True
-  },
-  "blocks": [
-    {
-      "type": "input",
-      "block_id": "my_block",
-      "element": {
-        "type": "plain_text_input",
-        "action_id": "my_action"
-      },
-      "label": {
-        "type": "plain_text",
-        "text": "Say something nice!",
-        "emoji": True
-      }
-    }
-  ]
-}
-        blocks.extend(view_modal)
         # First send to requesters channel
         try:
             response = slack_web_client.chat_postMessage(

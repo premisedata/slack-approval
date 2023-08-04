@@ -17,6 +17,8 @@ class SlackProvision:
         self.headers = request.headers
         self.payload = json.loads(request.form["payload"])
         if self.from_reject_response():
+            self.name = "Provision Testing"
+            self.action_id = ""
             return
         self.user_payload = self.payload["user"]
         self.action = self.payload["actions"][0]
@@ -241,7 +243,7 @@ class SlackProvision:
         except errors.SlackApiError as e:
             logger.error(e)
 
-        self.send_status_message()
+        # self.send_status_message()
 
 
     def from_reject_response(self):
