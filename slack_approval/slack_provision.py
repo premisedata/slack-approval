@@ -194,11 +194,12 @@ class SlackProvision:
         try:
             client = WebClient(self.token)
             response = client.views_open(
-                trigger_id="1",
+                trigger_id=self.payload["trigger_id"],
                 view={
                     "type": "modal",
                     "callback_id": "reject_reason_modal",
                     "private_metadata": json.dumps(private_metadata),
+                    "response_action": "clear",
                     "title": {
                         "type": "plain_text",
                         "text": "Deny Reason"
