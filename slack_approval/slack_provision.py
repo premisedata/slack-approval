@@ -3,14 +3,17 @@ import os
 import logging
 from slack_sdk.signature import SignatureVerifier
 from slack_sdk import WebhookClient, WebClient, errors
+from slack_sdk.web.async_client import AsyncWebClient
+import asyncio
 
 logger = logging.getLogger("slack_provision")
 logger.setLevel(logging.DEBUG)
 
 
 
-
 class SlackProvision:
+
+
     def __init__(self, request, requesters_channel=None):
         self.token = os.environ.get("SLACK_BOT_TOKEN")
         self.data = request.get_data()
@@ -60,7 +63,8 @@ class SlackProvision:
             if self.action_id == "Approved":
                 self.approved()
             elif self.action_id == "Rejected":
-                self.open_reject_reason_modal()
+                async_client = AsyncWebClient(token=self.token)
+                asyncio.run(self.open_reject_reason_modal(async_client))
                 return 200
             elif self.action_id == "Not allowed":
                 self.send_not_allowed_message()
@@ -173,7 +177,7 @@ class SlackProvision:
         except errors.SlackApiError as e:
             logger.error(e)
 
-    def open_reject_reason_modal(self):
+    async def open_reject_reason_modal(self, async_client):
         private_metadata = {
             "channel_id": self.payload['channel']['id'],
             "message_ts": self.payload['message']['ts'],
@@ -185,8 +189,8 @@ class SlackProvision:
             "token": self.token
             }
         try:
-            client = WebClient(self.token)
-            response = client.views_open(
+            # client = WebClient(self.token)
+            response = await async_client.views_open(
                 trigger_id=self.payload['trigger_id'],
                 view={
                     "type": "modal",
