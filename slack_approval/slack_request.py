@@ -13,7 +13,7 @@ class SlackRequest:
         """
         self.inputs = request.json
         self.name = self.inputs["provision_class"]
-        self.value = self.inputs.copy() # save inputs before hiding anything
+        self.value = self.inputs.copy()  # save inputs before hiding anything
         hide = self.inputs.get("hide")
         if hide:
             logger.info(f"Hidden fields: {hide}")
@@ -26,7 +26,7 @@ class SlackRequest:
 
         if self.inputs.get("requesters_channel"):
             self.inputs.pop("requesters_channel")
-        
+
         if self.inputs.get("approvers_channel"):
             self.inputs.pop("approvers_channel")
 
@@ -35,7 +35,7 @@ class SlackRequest:
         blocks = [
             {
                 "type": "header",
-                "text": {"type": "plain_text", "text": self.name, "emoji": True,},
+                "text": {"type": "plain_text", "text": self.name, "emoji": True, },
             },
             {"type": "divider"},
         ]
@@ -57,12 +57,12 @@ class SlackRequest:
                 channel=self.requesters_channel,
                 text="fallback",
                 blocks=blocks
-                + [
-                    {
-                        "type": "section",
-                        "text": {"type": "mrkdwn", "text": "*Request Pending*",},
-                    }
-                ],
+                       + [
+                           {
+                               "type": "section",
+                               "text": {"type": "mrkdwn", "text": "*Request Pending*", },
+                           }
+                       ],
             )
             # Save timestamp and requesters channel to be updated after provision
             self.value["ts"] = response.get("ts")
@@ -85,8 +85,8 @@ class SlackRequest:
                         "action_id": "Approved",
                         "value": value,
                         "confirm": {
-                            "title": {"type": "plain_text", "text": "Confirm",},
-                            "text": {"type": "mrkdwn", "text": "Are you sure?",},
+                            "title": {"type": "plain_text", "text": "Confirm", },
+                            "text": {"type": "mrkdwn", "text": "Are you sure?", },
                             "confirm": {"type": "plain_text", "text": "Do it"},
                             "deny": {
                                 "type": "plain_text",
@@ -104,35 +104,10 @@ class SlackRequest:
                         "value": value,
                         "style": "danger",
                         "action_id": "Rejected",
-                        "confirm": {
-                            "title": {"type": "plain_text", "text": "Reject", },
-                            "text": {"type": "mrkdwn", "text": "Type reason", },
-                            "confirm": {"type": "plain_text", "text": "Do it"},
-                            "deny": {
-                                "type": "plain_text",
-                                "text": "Stop, I've changed my mind!"
-                            }
-                        }
-                    }
+                    },
                 ],
             }
         )
-        blocks.append(
-                       {
-                           "type": "input",
-                           "label": {
-                               "type": "plain_text",
-                               "text": "Reject"
-                           },
-                           "element": {
-                               "type": "plain_text_input",
-                               "action_id": "reason_response",
-                               "placeholder": {
-                                   "type": "plain_text",
-                                   "text": "Type reason for reject"
-                               }
-                           }
-                       }})
         # Send to approvers channel with `approve` and `reject` buttons
         try:
             response = slack_web_client.chat_postMessage(
