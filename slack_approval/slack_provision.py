@@ -1,12 +1,9 @@
 import json
 import os
 import logging
-from threading import Thread
 
 from slack_sdk.signature import SignatureVerifier
 from slack_sdk import WebhookClient, WebClient, errors
-from slack_sdk.web.async_client import AsyncWebClient
-import asyncio
 
 logger = logging.getLogger("slack_provision")
 logger.setLevel(logging.DEBUG)
@@ -65,18 +62,17 @@ class SlackProvision:
             if self.action_id == "Approved":
                 self.approved()
             elif self.action_id == "Rejected":
-                async_client = AsyncWebClient(token=self.token)
-                # asyncio.run(self.open_reject_reason_modal(async_client))
-                Thread(target=self.open_reject_reason_modal).start()
-                return 200
+                self.open_reject_reason_modal()
+                return
             elif self.action_id == "Not allowed":
                 self.send_not_allowed_message()
                 logger.info(f"Response not allowed for user {self.user}")
-                return 200
+                return
             else:
                 self.reject_with_reason()
+                self.rejected()
                 logger.info(f"Action not found called by {self.user}")
-                return 200
+                return
 
         except Exception as e:
             self.exception = e
@@ -88,7 +84,7 @@ class SlackProvision:
                 self.inputs.pop(field, None)
             self.inputs.pop("hide")
         self.send_status_message()
-        return 200
+        return
 
     def send_status_message(self):
         blocks = [
@@ -241,7 +237,6 @@ class SlackProvision:
         reason = self.payload['view']['state']['values']['reason_block']['reject_reason_input']['value']
         self.action_id = f"Rejected with reason: {reason}"
         self.exception = None
-        return
         try:
             client = WebClient(self.token)
             client.chat_postMessage(
@@ -252,7 +247,7 @@ class SlackProvision:
         except errors.SlackApiError as e:
             logger.error(e)
 
-        # self.send_status_message()
+        self.send_status_message()
 
 
     def from_reject_response(self):
