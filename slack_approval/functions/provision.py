@@ -4,8 +4,10 @@ from slack_approval.slack_provision import SlackProvision
 
 app = Goblet(function_name="provision")
 goblet_entrypoint(app)
+import logging
 
-
+logger = logging.getLogger("slack_provision")
+logger.setLevel(logging.DEBUG)
 @app.http()
 def main(request):
     """
@@ -20,6 +22,7 @@ def main(request):
             slack_provision.__class__ = globals()[slack_provision.name.replace(" ", "")]
             slack_provision()
         except Exception as e:
+            logger.info(f"Error {e}")
             return Response("ERROR", status_code=400)
     return Response("OK", status_code=200)
 
