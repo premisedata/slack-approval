@@ -194,7 +194,7 @@ class SlackProvision:
         try:
             client = WebClient(self.token)
             response = client.views_open(
-                trigger_id=self.payload['trigger_id'],
+                trigger_id="1",
                 view={
                     "type": "modal",
                     "callback_id": "reject_reason_modal",
