@@ -103,16 +103,7 @@ class SlackRequest:
                         },
                         "value": value,
                         "style": "danger",
-                        "action_id": "Rejected",
-                        "confirm": {
-                            "title": {"type": "plain_text", "text": "Confirm", },
-                            "text": {"type": "mrkdwn", "text": "Are you sure?", },
-                            "confirm": {"type": "plain_text", "text": "Do it"},
-                            "deny": {
-                                "type": "plain_text",
-                                "text": "Stop, I've changed my mind!",
-                            },
-                        },
+                        "action_id": "Rejected"
                     },
                 ],
             }
