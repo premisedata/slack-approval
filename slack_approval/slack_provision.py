@@ -9,19 +9,21 @@ logger = logging.getLogger("slack_provision")
 logger.setLevel(logging.DEBUG)
 
 
-
 class SlackProvision:
-
-
     def __init__(self, request, requesters_channel=None):
+        self.exception = None
         self.token = os.environ.get("SLACK_BOT_TOKEN")
         self.data = request.get_data()
         self.headers = request.headers
         self.payload = json.loads(request.form["payload"])
+
+        # Comes from the reject response modal view
         if self.from_reject_response():
-            self.name = "Provision Testing"
-            self.action_id = ""
+            self.channel_id = None
+            self.reason = None
+            self.construct_from_private_metadata()
             return
+
         self.user_payload = self.payload["user"]
         self.action = self.payload["actions"][0]
         self.inputs = json.loads(self.action["value"])
@@ -30,21 +32,17 @@ class SlackProvision:
         self.action_id = self.action["action_id"]
         self.ts = self.inputs.pop("ts")
         self.requesters_channel = self.inputs.pop("requesters_channel")
-        logger.info(f"Approve or Reject or Not Allowd action_id payload = {self.payload}")
         self.approvers_channel = self.inputs.pop("approvers_channel", None)
         self.user = self.parse_user()
-
-        self.exception = None
-        self.prevent_self_approval = self.inputs.get("prevent_self_approval", False)
-        self.requester = self.inputs["requester"] if "requester" in self.inputs else ""
+        self.requester = self.inputs.get("requester", "")
 
         # Requester can response depending on flag for prevent self approval and user-requester values
-        if not self.can_response():
+        self.prevent_self_approval = self.inputs.get("prevent_self_approval", False)
+        if not self.allowed():
             self.action_id = "Not allowed"
 
     def is_valid_signature(self, signing_secret):
-        """Validates the request from the Slack integration
-        """
+        """Validates the request from the Slack integration"""
         timestamp = self.headers["x-slack-request-timestamp"]
         signature = self.headers["x-slack-signature"]
         verifier = SignatureVerifier(signing_secret)
@@ -57,7 +55,6 @@ class SlackProvision:
         logger.info("request rejected")
 
     def __call__(self):
-
         try:
             if self.action_id == "Approved":
                 self.approved()
@@ -66,12 +63,11 @@ class SlackProvision:
                 return
             elif self.action_id == "Not allowed":
                 self.send_not_allowed_message()
-                logger.info(f"Response not allowed for user {self.user}")
                 return
-            else:
-                self.reject_with_reason()
+            elif self.action_id == "Reject Response":
+                self.reject_reason_on_thread()
+                self.send_status_message()
                 self.rejected()
-                logger.info(f"Action not found called by {self.user}")
                 return
 
         except Exception as e:
@@ -90,7 +86,11 @@ class SlackProvision:
         blocks = [
             {
                 "type": "header",
-                "text": {"type": "plain_text", "text": self.name, "emoji": True,},
+                "text": {
+                    "type": "plain_text",
+                    "text": self.name,
+                    "emoji": True,
+                },
             },
             {"type": "divider"},
         ]
@@ -142,22 +142,16 @@ class SlackProvision:
                 blocks=blocks,
             )
             logger.info(response.status_code)
-            return response.status_code
         except errors.SlackApiError as e:
             logger.error(e)
-        return 200
 
-    def can_response(self):
+    def allowed(self):
         if not self.prevent_self_approval:
             return True
         try:
             slack_web_client = WebClient(self.token)
-            logger.info(self.user_payload["id"])
             user_info = slack_web_client.users_info(user=self.user_payload["id"])
-            logger.info(user_info)
             user_email = user_info["user"]["profile"]["email"]
-            logger.info(f"user_info = {user_info}")
-            logger.info(f"user_email = {user_email} requester = {self.requester}")
             if user_email == self.requester:
                 return False
             else:
@@ -171,22 +165,22 @@ class SlackProvision:
             client.chat_postMessage(
                 channel=self.requesters_channel,
                 thread_ts=self.ts,
-                text=f"User {self.user} not allowed to response (same user as requester). Prevent self approval activated."
+                text=f"User {self.user} not allowed to response (same user as requester). Prevent self approval activated.",
             )
         except errors.SlackApiError as e:
             logger.error(e)
 
     def open_reject_reason_modal(self):
         private_metadata = {
-            "channel_id": self.payload['channel']['id'],
-            "message_ts": self.payload['message']['ts'],
+            "channel_id": self.payload["channel"]["id"],
+            "message_ts": self.payload["message"]["ts"],
             "name": self.inputs["provision_class"],
             "inputs": self.inputs,
             "user": self.user,
             "response_url": self.response_url,
             "requesters_channel": self.requesters_channel,
-            "token": self.token
-            }
+            "token": self.token,
+        }
         try:
             client = WebClient(self.token)
             response = client.views_open(
@@ -195,38 +189,54 @@ class SlackProvision:
                     "type": "modal",
                     "callback_id": "reject_reason_modal",
                     "private_metadata": json.dumps(private_metadata),
-                    "title": {
-                        "type": "plain_text",
-                        "text": "Reject Reason"
-                    },
+                    "title": {"type": "plain_text", "text": "Reject Reason"},
                     "blocks": [
                         {
                             "type": "input",
                             "block_id": "reason_block",
                             "label": {
                                 "type": "plain_text",
-                                "text": "Please provide a reason for rejection:"
+                                "text": "Please provide a reason for rejection:",
                             },
                             "element": {
                                 "type": "plain_text_input",
-                                "action_id": "reject_reason_input"
-                            }
+                                "action_id": "reject_reason_input",
+                            },
                         }
                     ],
-                    "submit": {
-                        "type": "plain_text",
-                        "text": "Submit"
-                    }
-                }
+                    "submit": {"type": "plain_text", "text": "Submit"},
+                },
             )
             logger.info(f"passed away {response}")
         except errors.SlackApiError as e:
             logger.error(e)
 
-    def reject_with_reason(self):
-        logger.info("reject_with_reason")
-        metadata = json.loads(self.payload['view']['private_metadata'])
-        channel_id = metadata["channel_id"]
+    def reject_reason_on_thread(self):
+        try:
+            client = WebClient(self.token)
+            client.chat_postMessage(
+                channel=self.channel_id,
+                thread_ts=self.ts,
+                text=f"Reason for rejection: {self.reason}",
+            )
+        except errors.SlackApiError as e:
+            logger.error(e)
+
+    def from_reject_response(self):
+        return (
+            self.payload.get("type", "") == "view_submission"
+            and self.payload.get("view", False)
+            and self.payload["view"].get("callback_id", "") == "reject_reason_modal"
+        )
+
+    def parse_user(self):
+        return " ".join(
+            [s.capitalize() for s in self.payload["user"]["name"].split(".")]
+        )
+
+    def construct_from_private_metadata(self):
+        metadata = json.loads(self.payload["view"]["private_metadata"])
+        self.channel_id = metadata["channel_id"]
         self.ts = metadata["message_ts"]
         self.inputs = metadata["inputs"]
         self.name = self.inputs["provision_class"]
@@ -234,29 +244,8 @@ class SlackProvision:
         self.response_url = metadata["response_url"]
         self.requesters_channel = metadata["requesters_channel"]
         self.token = metadata["token"]
-        reason = self.payload['view']['state']['values']['reason_block']['reject_reason_input']['value']
-        self.action_id = f"Rejected with reason: {reason}"
+        self.reason = self.payload["view"]["state"]["values"]["reason_block"][
+            "reject_reason_input"
+        ]["value"]
+        self.action_id = "Reject Response"
         self.exception = None
-        try:
-            client = WebClient(self.token)
-            client.chat_postMessage(
-                channel=channel_id,
-                thread_ts=self.ts,
-                text=f"Reason for rejection: {reason}"
-            )
-        except errors.SlackApiError as e:
-            logger.error(e)
-
-        self.send_status_message()
-
-
-    def from_reject_response(self):
-        return self.payload["type"] == "view_submission" and "view" in self.payload and "callback_id" in self.payload["view"] and self.payload["view"]["callback_id"] == "reject_reason_modal"
-
-    def load_payload(self):
-        self.name = self.inputs["provision_class"]
-
-    def parse_user(self):
-        return " ".join(
-            [s.capitalize() for s in self.payload["user"]["name"].split(".")]
-        )

@@ -9,8 +9,7 @@ logger.setLevel(logging.DEBUG)
 
 class SlackRequest:
     def __init__(self, request):
-        """requesters_channel only necessary for `pending` messages
-        """
+        """requesters_channel only necessary for `pending` messages"""
         self.inputs = request.json
         self.name = self.inputs["provision_class"]
         self.value = self.inputs.copy()  # save inputs before hiding anything
@@ -21,8 +20,12 @@ class SlackRequest:
                 self.inputs.pop(field, None)
             self.inputs.pop("hide")
         self.token = os.environ.get("SLACK_BOT_TOKEN")
-        self.approvers_channel = os.environ[self.inputs.get("approvers_channel", "APPROVERS_CHANNEL")]
-        self.requesters_channel = os.environ[self.inputs.get("requesters_channel", "REQUESTERS_CHANNEL")]
+        self.approvers_channel = os.environ[
+            self.inputs.get("approvers_channel", "APPROVERS_CHANNEL")
+        ]
+        self.requesters_channel = os.environ[
+            self.inputs.get("requesters_channel", "REQUESTERS_CHANNEL")
+        ]
 
         if self.inputs.get("requesters_channel"):
             self.inputs.pop("requesters_channel")
@@ -35,7 +38,11 @@ class SlackRequest:
         blocks = [
             {
                 "type": "header",
-                "text": {"type": "plain_text", "text": self.name, "emoji": True, },
+                "text": {
+                    "type": "plain_text",
+                    "text": self.name,
+                    "emoji": True,
+                },
             },
             {"type": "divider"},
         ]
@@ -57,12 +64,15 @@ class SlackRequest:
                 channel=self.requesters_channel,
                 text="fallback",
                 blocks=blocks
-                       + [
-                           {
-                               "type": "section",
-                               "text": {"type": "mrkdwn", "text": "*Request Pending*", },
-                           }
-                       ],
+                + [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "*Request Pending*",
+                        },
+                    }
+                ],
             )
             # Save timestamp and requesters channel to be updated after provision
             self.value["ts"] = response.get("ts")
@@ -85,8 +95,14 @@ class SlackRequest:
                         "action_id": "Approved",
                         "value": value,
                         "confirm": {
-                            "title": {"type": "plain_text", "text": "Confirm", },
-                            "text": {"type": "mrkdwn", "text": "Are you sure?", },
+                            "title": {
+                                "type": "plain_text",
+                                "text": "Confirm",
+                            },
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": "Are you sure?",
+                            },
                             "confirm": {"type": "plain_text", "text": "Do it"},
                             "deny": {
                                 "type": "plain_text",
@@ -103,7 +119,7 @@ class SlackRequest:
                         },
                         "value": value,
                         "style": "danger",
-                        "action_id": "Rejected"
+                        "action_id": "Rejected",
                     },
                 ],
             }
