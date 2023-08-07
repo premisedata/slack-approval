@@ -162,10 +162,11 @@ class SlackProvision:
     def send_not_allowed_message(self):
         try:
             client = WebClient(self.token)
-            client.chat_postMessage(
+            client.chat_update(
                 channel=self.requesters_channel,
-                thread_ts=self.ts,
-                text=f"User {self.user} not allowed to response (same user as requester). Prevent self approval activated.",
+                ts=self.ts,
+                text=f"User {self.user} not allowed to response (same user as requester). Prevent self approval "
+                     f"activated.",
             )
         except errors.SlackApiError as e:
             logger.error(e)
