@@ -160,13 +160,14 @@ class SlackProvision:
             logger.error(e)
 
     def send_not_allowed_message(self):
+        blocks = self.construct_base_blocks()
         try:
             client = WebClient(self.token)
             client.chat_update(
                 channel=self.requesters_channel,
                 ts=self.ts,
-                text=f"User {self.user} not allowed to response (same user as requester). Prevent self approval "
-                     f"activated.",
+                text="fallback",
+                blocks=blocks
             )
         except errors.SlackApiError as e:
             logger.error(e)
@@ -250,3 +251,50 @@ class SlackProvision:
         ]["value"]
         self.action_id = "Reject Response"
         self.exception = None
+
+    def construct_base_blocks(self):
+        blocks = [
+            {
+                "type": "header",
+                "text": {
+                    "type": "plain_text",
+                    "text": self.name,
+                    "emoji": True,
+                },
+            },
+            {"type": "divider"},
+        ]
+        input_blocks = [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"*{' '.join([s.capitalize() for s in key.split('_')])}:* {value}",
+                },
+            }
+            for key, value in self.inputs.items()
+            if key != "provision_class"
+        ]
+        blocks.extend(input_blocks)
+        blocks.append({"type": "divider"})
+        blocks.append(
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"*Status: {self.action_id} by {self.user}*",
+                },
+            }
+        )
+        if self.exception:
+            blocks.append({"type": "divider"})
+            blocks.append(
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": f"Error while provisioning: {self.exception}",
+                    },
+                }
+            )
+        return blocks
