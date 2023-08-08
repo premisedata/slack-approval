@@ -74,9 +74,9 @@ class SlackProvision:
                 )
             elif self.action_id == "Reject Response":
                 self.rejected()
-                self.send_thread_message(message=self.reason, thread=self.response_url)
+                self.send_thread_message(message=self.reason, thread=self.channel_id)
                 self.send_thread_message(
-                    message=self.reason, thread=self.channel_id
+                    message=self.reason, thread=self.requesters_channel
                 )
                 self.send_status_message(
                     requester_status="Rejected", approver_status="Rejected"
@@ -87,15 +87,19 @@ class SlackProvision:
             logger.error(e)
 
     def send_status_message(self, requester_status=None, approver_status=None):
-
+        hide = self.inputs.get("hide")
+        if hide:
+            for field in hide:
+                self.inputs.pop(field, None)
+            self.inputs.pop("hide")
         blocks = self.get_base_blocks(status=approver_status)
         try:
             # Message for approver
             slack_client = WebhookClient(self.response_url)
             response = slack_client.send(text="fallback", blocks=blocks)
-            logger.info(f"Message sent to response_url {self.response_url} status code {response.status_code}")
+            logger.info(response.status_code)
         except errors.SlackApiError as e:
-            logger.error(f"Error sending status message to response_url {self.response_url} error: {e}")
+            logger.error(e)
         try:
             # Message for requester
             blocks = self.get_base_blocks(status=requester_status)
@@ -106,15 +110,9 @@ class SlackProvision:
                 text="fallback",
                 blocks=blocks,
             )
-            logger.info(f"Message sent to requesters channel {self.requesters_channel} status code {response.status_code}")
+            logger.info(response.status_code)
         except errors.SlackApiError as e:
-            logger.error(f"Error sending status message to requesters_channel {self.requesters_channel} error: {e}")
-
-        hide = self.inputs.get("hide")
-        if hide:
-            for field in hide:
-                self.inputs.pop(field, None)
-            self.inputs.pop("hide")
+            logger.error(e)
 
     def is_allowed(self):
         if not self.prevent_self_approval:
@@ -220,8 +218,7 @@ class SlackProvision:
         self.exception = None
 
     def get_base_blocks(self, status):
-        blocks = []
-        header_block = [
+        blocks = [
             {
                 "type": "header",
                 "text": {
@@ -229,7 +226,8 @@ class SlackProvision:
                     "text": self.name,
                     "emoji": True,
                 },
-            }
+            },
+            {"type": "divider"},
         ]
         input_blocks = [
             {
@@ -242,29 +240,26 @@ class SlackProvision:
             for key, value in self.inputs.items()
             if key != "provision_class"
         ]
-        status_block = {
+        blocks.extend(input_blocks)
+        blocks.append({"type": "divider"})
+        blocks.append(
+            {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
                     "text": f"*Status: {status} by {self.user}*",
-                }
+                },
             }
-
-        blocks.append(header_block)
-        blocks.append({"type": "divider"})
-        blocks.append(input_blocks)
-        blocks.append({"type": "divider"})
-        blocks.append(status_block)
-
+        )
         if self.exception:
-            exception_block = {
+            blocks.append({"type": "divider"})
+            blocks.append(
+                {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
                         "text": f"Error while provisioning: {self.exception}",
                     },
                 }
-            blocks.append({"type": "divider"})
-            blocks.append(exception_block)
-
+            )
         return blocks
