@@ -12,6 +12,7 @@ logger.setLevel(logging.DEBUG)
 class SlackProvision:
     def __init__(self, request, requesters_channel=None):
         self.exception = None
+        self.message_ts = None
         self.token = os.environ.get("SLACK_BOT_TOKEN")
         self.data = request.get_data()
         self.headers = request.headers
@@ -181,6 +182,11 @@ class SlackProvision:
                 thread_ts=self.ts,
                 text=f"Reason for rejection: {self.reason}",
             )
+            client.chat_postMessage(
+                channel=self.requesters_channel,
+                thread_ts=self.message_ts,
+                text=f"Reason for rejection: {self.reason}",
+            )
         except errors.SlackApiError as e:
             logger.error(e)
 
@@ -200,6 +206,7 @@ class SlackProvision:
         metadata = json.loads(self.payload["view"]["private_metadata"])
         self.channel_id = metadata["channel_id"]
         self.ts = metadata["ts"]
+        self.message_ts = metadata["message_ts"]
         self.inputs = metadata["inputs"]
         self.name = self.inputs["provision_class"]
         self.user = metadata["user"]
