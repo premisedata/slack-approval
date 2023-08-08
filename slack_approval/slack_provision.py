@@ -58,6 +58,7 @@ class SlackProvision:
         try:
             if self.action_id == "Approved":
                 self.approved()
+                self.send_status_message(requester_status="Approved", approver_status="Approved")
             elif self.action_id == "Rejected":
                 self.is_open_reason_view()
                 return
@@ -74,23 +75,25 @@ class SlackProvision:
             self.exception = e
             logger.error(e)
 
-        self.send_status_message()
         return
 
-    def send_status_message(self):
+    def send_status_message(self, approver_status, requester_status):
         hide = self.inputs.get("hide")
         if hide:
             for field in hide:
                 self.inputs.pop(field, None)
             self.inputs.pop("hide")
-        blocks = self.get_base_blocks()
+        blocks = self.get_base_blocks(status=approver_status)
         try:
+            # Message to approver
             slack_client = WebhookClient(self.response_url)
             response = slack_client.send(text="fallback", blocks=blocks)
             logger.info(response.status_code)
         except errors.SlackApiError as e:
             logger.error(e)
         try:
+            blocks = self.get_base_blocks(status=requester_status)
+            # Message to requester
             slack_web_client = WebClient(self.token)
             response = slack_web_client.chat_update(
                 channel=self.requesters_channel,
@@ -208,7 +211,7 @@ class SlackProvision:
         self.action_id = "Reject Response"
         self.exception = None
 
-    def get_base_blocks(self):
+    def get_base_blocks(self, status):
         blocks = [
             {
                 "type": "header",
@@ -238,7 +241,7 @@ class SlackProvision:
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": f"*Status: {self.action_id} by {self.user}*",
+                    "text": f"*Status: {status} by {self.user}*",
                 },
             }
         )
