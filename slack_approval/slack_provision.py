@@ -74,7 +74,7 @@ class SlackProvision:
                 )
             elif self.action_id == "Reject Response":
                 self.rejected()
-                self.send_thread_message(message=self.reason, thread=self.channel_id)
+                self.send_thread_message(message=self.reason, thread=self.response_url)
                 self.send_thread_message(
                     message=self.reason, thread=self.requesters_channel
                 )
@@ -218,7 +218,8 @@ class SlackProvision:
         self.exception = None
 
     def get_base_blocks(self, status):
-        blocks = [
+        blocks = []
+        header_block = [
             {
                 "type": "header",
                 "text": {
@@ -226,8 +227,7 @@ class SlackProvision:
                     "text": self.name,
                     "emoji": True,
                 },
-            },
-            {"type": "divider"},
+            }
         ]
         input_blocks = [
             {
@@ -240,26 +240,29 @@ class SlackProvision:
             for key, value in self.inputs.items()
             if key != "provision_class"
         ]
-        blocks.extend(input_blocks)
-        blocks.append({"type": "divider"})
-        blocks.append(
-            {
+        status_block = {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
                     "text": f"*Status: {status} by {self.user}*",
-                },
+                }
             }
-        )
+
+        blocks.append(header_block)
+        blocks.append({"type": "divider"})
+        blocks.append(input_blocks)
+        blocks.append({"type": "divider"})
+        blocks.append(status_block)
+
         if self.exception:
-            blocks.append({"type": "divider"})
-            blocks.append(
-                {
+            exception_block = {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
                         "text": f"Error while provisioning: {self.exception}",
                     },
                 }
-            )
+            blocks.append({"type": "divider"})
+            blocks.append(exception_block)
+
         return blocks
