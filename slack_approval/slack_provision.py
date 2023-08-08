@@ -142,6 +142,7 @@ class SlackProvision:
             "response_url": self.response_url,
             "requesters_channel": self.requesters_channel,
             "token": self.token,
+            "ts": self.ts
         }
         try:
             client = WebClient(self.token)
@@ -198,7 +199,7 @@ class SlackProvision:
     def get_private_metadata(self):
         metadata = json.loads(self.payload["view"]["private_metadata"])
         self.channel_id = metadata["channel_id"]
-        self.ts = metadata["message_ts"]
+        self.ts = metadata["ts"]
         self.inputs = metadata["inputs"]
         self.name = self.inputs["provision_class"]
         self.user = metadata["user"]
