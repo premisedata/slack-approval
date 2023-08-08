@@ -66,7 +66,8 @@ class SlackProvision:
                 self.is_open_reason_view()
             elif self.action_id == "Not allowed":
                 message = f"Same request/response user {self.user} not allowed. Prevent self approval is on."
-                self.send_message_to_thread(message=message, thread_ts=self.ts, channel=self.requesters_channel)
+                self.send_message_to_thread(message=message, thread_ts=self.ts, channel=self.channel_id)
+                self.send_message_to_thread(message=message, thread_ts=self.message_ts, channel=self.requesters_channel)
             elif self.action_id == "Reject Response":
                 self.rejected()
                 message = f"Reason for rejection: {self.reason}"
