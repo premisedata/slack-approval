@@ -17,11 +17,11 @@ class SlackProvision:
         self.headers = request.headers
         self.payload = json.loads(request.form["payload"])
 
-        # Comes from the reject response modal view
-        if self.from_reject_response():
+        # Comes from the reject response modal view (data comes in private metadata)
+        if self.is_reject_reason_view():
             self.channel_id = None
             self.reason = None
-            self.construct_from_private_metadata()
+            self.get_private_metadata()
             return
 
         self.user_payload = self.payload["user"]
@@ -38,7 +38,7 @@ class SlackProvision:
 
         # Requester can response depending on flag for prevent self approval and user-requester values
         self.prevent_self_approval = self.inputs.get("prevent_self_approval", False)
-        if not self.allowed():
+        if not self.is_allowed():
             self.action_id = "Not allowed"
 
     def is_valid_signature(self, signing_secret):
@@ -59,74 +59,31 @@ class SlackProvision:
             if self.action_id == "Approved":
                 self.approved()
             elif self.action_id == "Rejected":
-                self.open_reject_reason_modal()
+                self.open_reason_view()
                 return
             elif self.action_id == "Not allowed":
                 self.send_not_allowed_message()
                 return
             elif self.action_id == "Reject Response":
-                self.reject_reason_on_thread()
-                self.send_status_message()
                 self.rejected()
+                self.send_reject_reason()
+                self.send_status_message()
                 return
 
         except Exception as e:
             self.exception = e
             logger.error(e)
 
+        self.send_status_message()
+        return
+
+    def send_status_message(self):
         hide = self.inputs.get("hide")
         if hide:
             for field in hide:
                 self.inputs.pop(field, None)
             self.inputs.pop("hide")
-        self.send_status_message()
-        return
-
-    def send_status_message(self):
-        blocks = [
-            {
-                "type": "header",
-                "text": {
-                    "type": "plain_text",
-                    "text": self.name,
-                    "emoji": True,
-                },
-            },
-            {"type": "divider"},
-        ]
-        input_blocks = [
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": f"*{' '.join([s.capitalize() for s in key.split('_')])}:* {value}",
-                },
-            }
-            for key, value in self.inputs.items()
-            if key != "provision_class"
-        ]
-        blocks.extend(input_blocks)
-        blocks.append({"type": "divider"})
-        blocks.append(
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": f"*Status: {self.action_id} by {self.user}*",
-                },
-            }
-        )
-        if self.exception:
-            blocks.append({"type": "divider"})
-            blocks.append(
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": f"Error while provisioning: {self.exception}",
-                    },
-                }
-            )
+        blocks = self.get_base_blocks()
         try:
             slack_client = WebhookClient(self.response_url)
             response = slack_client.send(text="fallback", blocks=blocks)
@@ -145,7 +102,7 @@ class SlackProvision:
         except errors.SlackApiError as e:
             logger.error(e)
 
-    def allowed(self):
+    def is_allowed(self):
         if not self.prevent_self_approval:
             return True
         try:
@@ -160,7 +117,7 @@ class SlackProvision:
             logger.error(e)
 
     def send_not_allowed_message(self):
-        blocks = self.construct_base_blocks()
+        blocks = self.get_base_blocks()
         try:
             client = WebClient(self.token)
             client.chat_update(
@@ -172,7 +129,7 @@ class SlackProvision:
         except errors.SlackApiError as e:
             logger.error(e)
 
-    def open_reject_reason_modal(self):
+    def open_reason_view(self):
         private_metadata = {
             "channel_id": self.payload["channel"]["id"],
             "message_ts": self.payload["message"]["ts"],
@@ -185,7 +142,7 @@ class SlackProvision:
         }
         try:
             client = WebClient(self.token)
-            response = client.views_open(
+            client.views_open(
                 trigger_id=self.payload["trigger_id"],
                 view={
                     "type": "modal",
@@ -209,11 +166,10 @@ class SlackProvision:
                     "submit": {"type": "plain_text", "text": "Submit"},
                 },
             )
-            logger.info(f"passed away {response}")
         except errors.SlackApiError as e:
             logger.error(e)
 
-    def reject_reason_on_thread(self):
+    def send_reject_reason(self):
         try:
             client = WebClient(self.token)
             client.chat_postMessage(
@@ -224,7 +180,7 @@ class SlackProvision:
         except errors.SlackApiError as e:
             logger.error(e)
 
-    def from_reject_response(self):
+    def is_reject_reason_view(self):
         return (
             self.payload.get("type", "") == "view_submission"
             and self.payload.get("view", False)
@@ -236,7 +192,7 @@ class SlackProvision:
             [s.capitalize() for s in self.payload["user"]["name"].split(".")]
         )
 
-    def construct_from_private_metadata(self):
+    def get_private_metadata(self):
         metadata = json.loads(self.payload["view"]["private_metadata"])
         self.channel_id = metadata["channel_id"]
         self.ts = metadata["message_ts"]
@@ -252,7 +208,7 @@ class SlackProvision:
         self.action_id = "Reject Response"
         self.exception = None
 
-    def construct_base_blocks(self):
+    def get_base_blocks(self):
         blocks = [
             {
                 "type": "header",
