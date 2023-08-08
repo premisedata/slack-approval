@@ -87,11 +87,7 @@ class SlackProvision:
             logger.error(e)
 
     def send_status_message(self, requester_status=None, approver_status=None):
-        hide = self.inputs.get("hide")
-        if hide:
-            for field in hide:
-                self.inputs.pop(field, None)
-            self.inputs.pop("hide")
+
         blocks = self.get_base_blocks(status=approver_status)
         try:
             # Message for approver
@@ -99,7 +95,7 @@ class SlackProvision:
             response = slack_client.send(text="fallback", blocks=blocks)
             logger.info(f"Message sent to response_url {self.response_url} status code {response.status_code}")
         except errors.SlackApiError as e:
-            logger.error(f"Error sending status message to {self.response_url} error: {e}")
+            logger.error(f"Error sending status message to response_url {self.response_url} error: {e}")
         try:
             # Message for requester
             blocks = self.get_base_blocks(status=requester_status)
@@ -112,7 +108,13 @@ class SlackProvision:
             )
             logger.info(f"Message sent to requesters channel {self.requesters_channel} status code {response.status_code}")
         except errors.SlackApiError as e:
-            logger.error(f"Error sending status message to {self.requesters_channel} error: {e}")
+            logger.error(f"Error sending status message to requesters_channel {self.requesters_channel} error: {e}")
+
+        hide = self.inputs.get("hide")
+        if hide:
+            for field in hide:
+                self.inputs.pop(field, None)
+            self.inputs.pop("hide")
 
     def is_allowed(self):
         if not self.prevent_self_approval:
