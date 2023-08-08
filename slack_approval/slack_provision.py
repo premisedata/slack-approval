@@ -59,15 +59,12 @@ class SlackProvision:
         try:
             if self.action_id == "Approved":
                 self.approved()
-                self.send_status_message(requester_status="Approved", approver_status="Approved")
+                self.send_status_message(status="Approved")
             elif self.action_id == "Rejected":
                 self.is_open_reason_view()
-                return
             elif self.action_id == "Not allowed":
-                message = f"Prevent self approval is on. Not allowed for same user {self.user}"
+                message = f"Same request/response user {self.user} not allowed. Prevent self approval is on."
                 self.send_message_to_thread(message=message, thread_ts=self.ts, channel=self.requesters_channel)
-                # self.send_not_allowed_message()
-                return
             elif self.action_id == "Reject Response":
                 self.rejected()
                 message = f"Reason for rejection: {self.reason}"
@@ -75,22 +72,19 @@ class SlackProvision:
                 self.send_message_to_thread(message=message, thread_ts=self.ts, channel=self.channel_id)
                 # Message to requester same request message
                 self.send_message_to_thread(message=message, thread_ts=self.message_ts, channel=self.requesters_channel)
-                self.send_status_message(requester_status="Rejected", approver_status="Rejected")
-                return
+                self.send_status_message(status="Approved")
 
         except Exception as e:
             self.exception = e
             logger.error(e)
 
-        return
-
-    def send_status_message(self, approver_status, requester_status):
+    def send_status_message(self, status):
         hide = self.inputs.get("hide")
         if hide:
             for field in hide:
                 self.inputs.pop(field, None)
             self.inputs.pop("hide")
-        blocks = self.get_base_blocks(status=approver_status)
+        blocks = self.get_base_blocks(status)
         try:
             # Message to approver
             slack_client = WebhookClient(self.response_url)
@@ -99,7 +93,6 @@ class SlackProvision:
         except errors.SlackApiError as e:
             logger.error(e)
         try:
-            blocks = self.get_base_blocks(status=requester_status)
             # Message to requester
             slack_web_client = WebClient(self.token)
             response = slack_web_client.chat_update(
