@@ -97,9 +97,9 @@ class SlackProvision:
             # Message for approver
             slack_client = WebhookClient(self.response_url)
             response = slack_client.send(text="fallback", blocks=blocks)
-            logger.info(response.status_code)
+            logger.info(f"Message sent to response_url {self.response_url} status code {response.status_code}")
         except errors.SlackApiError as e:
-            logger.error(e)
+            logger.error(f"Error sending status message to {self.response_url} error: {e}")
         try:
             # Message for requester
             blocks = self.get_base_blocks(status=requester_status)
@@ -110,9 +110,9 @@ class SlackProvision:
                 text="fallback",
                 blocks=blocks,
             )
-            logger.info(response.status_code)
+            logger.info(f"Message sent to requesters channel {self.requesters_channel} status code {response.status_code}")
         except errors.SlackApiError as e:
-            logger.error(e)
+            logger.error(f"Error sending status message to {self.requesters_channel} error: {e}")
 
     def is_allowed(self):
         if not self.prevent_self_approval:
