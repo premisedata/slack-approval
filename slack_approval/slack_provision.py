@@ -68,7 +68,7 @@ class SlackProvision:
             elif self.action_id == "Reject Response":
                 self.rejected()
                 self.send_reject_reason()
-                self.send_status_message()
+                self.send_status_message(requester_status="Rejected", approver_status="Rejected")
                 return
 
         except Exception as e:
