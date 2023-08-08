@@ -58,39 +58,51 @@ class SlackProvision:
         try:
             if self.action_id == "Approved":
                 self.approved()
+                self.send_status_message(
+                    requester_status="Approved", approver_status="Approved"
+                )
             elif self.action_id == "Rejected":
-                self.open_reason_view()
-                return
+                self.open_reason_modal()
             elif self.action_id == "Not allowed":
-                self.send_not_allowed_message()
-                return
+                # Send "Not allowed" message to approvers channel
+                self.send_thread_message(
+                    message=f"{self.user} not allowed. Prevent self approval active.",
+                    thread=self.channel_id,
+                )
+                self.send_status_message(
+                    requester_status="Pending", approver_status="Pending"
+                )
             elif self.action_id == "Reject Response":
                 self.rejected()
-                self.send_reject_reason()
-                self.send_status_message()
-                return
+                self.send_thread_message(message=self.reason, thread=self.channel_id)
+                self.send_thread_message(
+                    message=self.reason, thread=self.requesters_channel
+                )
+                self.send_status_message(
+                    requester_status="Rejected", approver_status="Rejected"
+                )
 
         except Exception as e:
             self.exception = e
             logger.error(e)
 
-        self.send_status_message()
-        return
-
-    def send_status_message(self):
+    def send_status_message(self, requester_status=None, approver_status=None):
         hide = self.inputs.get("hide")
         if hide:
             for field in hide:
                 self.inputs.pop(field, None)
             self.inputs.pop("hide")
-        blocks = self.get_base_blocks()
+        blocks = self.get_base_blocks(status=approver_status)
         try:
+            # Message for approver
             slack_client = WebhookClient(self.response_url)
             response = slack_client.send(text="fallback", blocks=blocks)
             logger.info(response.status_code)
         except errors.SlackApiError as e:
             logger.error(e)
         try:
+            # Message for requester
+            blocks = self.get_base_blocks(status=requester_status)
             slack_web_client = WebClient(self.token)
             response = slack_web_client.chat_update(
                 channel=self.requesters_channel,
@@ -124,12 +136,12 @@ class SlackProvision:
                 channel=self.requesters_channel,
                 ts=self.ts,
                 text="fallback",
-                blocks=blocks
+                blocks=blocks,
             )
         except errors.SlackApiError as e:
             logger.error(e)
 
-    def open_reason_view(self):
+    def open_reason_modal(self):
         private_metadata = {
             "channel_id": self.payload["channel"]["id"],
             "message_ts": self.payload["message"]["ts"],
@@ -169,14 +181,11 @@ class SlackProvision:
         except errors.SlackApiError as e:
             logger.error(e)
 
-    def send_reject_reason(self):
+    # Reply reject reason in thread
+    def send_thread_message(self, message, thread):
         try:
             client = WebClient(self.token)
-            client.chat_postMessage(
-                channel=self.channel_id,
-                thread_ts=self.ts,
-                text=f"Reason for rejection: {self.reason}",
-            )
+            client.chat_postMessage(channel=thread, thread_ts=self.ts, text=message)
         except errors.SlackApiError as e:
             logger.error(e)
 
@@ -208,7 +217,7 @@ class SlackProvision:
         self.action_id = "Reject Response"
         self.exception = None
 
-    def get_base_blocks(self):
+    def get_base_blocks(self, status):
         blocks = [
             {
                 "type": "header",
@@ -238,7 +247,7 @@ class SlackProvision:
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": f"*Status: {self.action_id} by {self.user}*",
+                    "text": f"*Status: {status} by {self.user}*",
                 },
             }
         )
