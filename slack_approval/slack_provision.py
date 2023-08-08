@@ -179,12 +179,10 @@ class SlackProvision:
             client = WebClient(self.token)
             client.chat_postMessage(
                 channel=self.channel_id,
-                thread_ts=self.ts,
                 text=f"Reason for rejection: {self.reason}",
             )
             client.chat_postMessage(
                 channel=self.requesters_channel,
-                thread_ts=self.message_ts,
                 text=f"Reason for rejection: {self.reason}",
             )
         except errors.SlackApiError as e:
