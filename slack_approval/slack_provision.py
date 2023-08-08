@@ -76,7 +76,7 @@ class SlackProvision:
                 self.rejected()
                 self.send_thread_message(message=self.reason, thread=self.response_url)
                 self.send_thread_message(
-                    message=self.reason, thread=self.requesters_channel
+                    message=self.reason, thread=self.channel_id
                 )
                 self.send_status_message(
                     requester_status="Rejected", approver_status="Rejected"
