@@ -65,7 +65,7 @@ class SlackProvision:
                 return
             elif self.action_id == "Not allowed":
                 message = f"Prevent self approval is on. Not allowed for same user {self.user}"
-                self.send_message_to_thread(message=message, thread_ts=self.message_ts, channel=self.requesters_channel)
+                self.send_message_to_thread(message=message, thread_ts=self.ts, channel=self.requesters_channel)
                 # self.send_not_allowed_message()
                 return
             elif self.action_id == "Reject Response":
