@@ -18,7 +18,7 @@ class SlackProvision:
         self.headers = request.headers
         self.payload = json.loads(request.form["payload"])
 
-        # Comes from the reject response modal view (data comes in private metadata)
+        # Come from the reject response modal view (data comes in private metadata)
         if self.is_reject_reason_view():
             self.channel_id = None
             self.reason = None
@@ -49,10 +49,12 @@ class SlackProvision:
         verifier = SignatureVerifier(signing_secret)
         return verifier.is_valid(self.data, timestamp, signature)
 
-    def approved(self):
+    @staticmethod
+    def approved():
         logger.info("request approved")
 
-    def rejected(self):
+    @staticmethod
+    def rejected():
         logger.info("request rejected")
 
     def __call__(self):
@@ -72,7 +74,7 @@ class SlackProvision:
                 self.send_message_to_thread(message=message, thread_ts=self.ts, channel=self.channel_id)
                 # Message to requester same request message
                 self.send_message_to_thread(message=message, thread_ts=self.message_ts, channel=self.requesters_channel)
-                self.send_status_message(status="Approved")
+                self.send_status_message(status="Rejected")
 
         except Exception as e:
             self.exception = e
