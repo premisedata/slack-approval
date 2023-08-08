@@ -64,11 +64,17 @@ class SlackProvision:
                 self.is_open_reason_view()
                 return
             elif self.action_id == "Not allowed":
-                self.send_not_allowed_message()
+                message = f"Prevent self approval is on. Not allowed for same user {self.user}"
+                self.send_message_to_thread(message=message, thread_ts=self.message_ts, channel=self.requesters_channel)
+                # self.send_not_allowed_message()
                 return
             elif self.action_id == "Reject Response":
                 self.rejected()
-                self.send_reject_reason()
+                message = f"Reason for rejection: {self.reason}"
+                # Message to approver same request message thread
+                self.send_message_to_thread(message=message, thread_ts=self.ts, channel=self.channel_id)
+                # Message to requester same request message
+                self.send_message_to_thread(message=message, thread_ts=self.message_ts, channel=self.requesters_channel)
                 self.send_status_message(requester_status="Rejected", approver_status="Rejected")
                 return
 
@@ -179,11 +185,24 @@ class SlackProvision:
             client = WebClient(self.token)
             client.chat_postMessage(
                 channel=self.channel_id,
+                thread_ts=self.ts,
                 text=f"Reason for rejection: {self.reason}",
             )
             client.chat_postMessage(
                 channel=self.requesters_channel,
+                thread_ts=self.message_ts,
                 text=f"Reason for rejection: {self.reason}",
+            )
+        except errors.SlackApiError as e:
+            logger.error(e)
+
+    def send_message_to_thread(self, message, thread_ts, channel):
+        try:
+            client = WebClient(self.token)
+            client.chat_postMessage(
+                channel=channel,
+                thread_ts=thread_ts,
+                text=message,
             )
         except errors.SlackApiError as e:
             logger.error(e)
