@@ -302,18 +302,20 @@ class SlackProvision:
             "modifiables_fields": self.modifiables_fields
         }
         try:
-            client = WebClient(self.token)
-            client.views_open(
-                trigger_id=self.payload["trigger_id"],
-                view={
+            modal_view = {
                     "type": "modal",
                     "callback_id": "reject_reason_modal",
                     "private_metadata": json.dumps(private_metadata),
                     "title": {"type": "plain_text", "text": "Edit view"},
                     "blocks": self.construct_modifiable_fields_blocks(),
                     "submit": {"type": "plain_text", "text": "Save"},
-                },
+                }
+            client = WebClient(self.token)
+            client.views_open(
+                trigger_id=self.payload["trigger_id"],
+                view=modal_view
             )
+            logger.info(f"modal view =   {modal_view}")
         except errors.SlackApiError as e:
             self.exception = e
             logger.error(e)
@@ -339,15 +341,13 @@ class SlackProvision:
                         "action_id": f"input_{modifiable_field_name}",
                         "placeholder": {
                             "type": "plain_text",
-                            "text": modifiable_field_value,
-                            "value": modifiable_field_value
+                            "text": modifiable_field_value
                         },
                         "multiline": False
                     },
                     "optional": True
                 }
             blocks.append(field)
-        logger.info(f"blocks={blocks}")
         return blocks
 
     def capture_modifiable_fields(self):
