@@ -18,8 +18,9 @@ class SlackProvision:
         self.headers = request.headers
         self.payload = json.loads(request.form["payload"])
 
-        # Come from the reject response modal view (data comes in private metadata)
+        # Comes from the reject response modal view (data comes in private metadata)
         if self.is_reject_reason_view():
+            # Some vars need to be defined so IDE dont complain
             self.channel_id = None
             self.reason = None
             self.get_private_metadata()
@@ -37,7 +38,8 @@ class SlackProvision:
         self.user = self.parse_user()
         self.requester = self.inputs.get("requester", "")
 
-        # Requester can response depending on flag for prevent self approval and user-requester values
+        """ Requester can response depending on flag for prevent self approval and user-requester values
+            Backward compatibility: prevent_self_approval deactivated """
         self.prevent_self_approval = self.inputs.get("prevent_self_approval", False)
         if not self.is_allowed():
             self.action_id = "Not allowed"
@@ -71,9 +73,15 @@ class SlackProvision:
                 self.rejected()
                 message = f"Reason for rejection: {self.reason}"
                 # Message to approver same request message thread
-                self.send_message_to_thread(message=message, thread_ts=self.ts, channel=self.channel_id)
+                self.send_message_to_thread(
+                    message=message, thread_ts=self.ts, channel=self.channel_id
+                )
                 # Message to requester same request message
-                self.send_message_to_thread(message=message, thread_ts=self.message_ts, channel=self.requesters_channel)
+                self.send_message_to_thread(
+                    message=message,
+                    thread_ts=self.message_ts,
+                    channel=self.requesters_channel,
+                )
                 # Update status on messages
                 self.send_status_message(status="Rejected")
 
@@ -94,6 +102,7 @@ class SlackProvision:
             response = slack_client.send(text="fallback", blocks=blocks)
             logger.info(response.status_code)
         except errors.SlackApiError as e:
+            self.exception = e
             logger.error(e)
         try:
             # Message to requester
@@ -106,6 +115,7 @@ class SlackProvision:
             )
             logger.info(response.status_code)
         except errors.SlackApiError as e:
+            self.exception = e
             logger.error(e)
 
     def is_allowed(self):
@@ -120,6 +130,7 @@ class SlackProvision:
             else:
                 return True
         except errors.SlackApiError as e:
+            self.exception = e
             logger.error(e)
 
     def open_reject_reason_view(self):
@@ -132,7 +143,7 @@ class SlackProvision:
             "response_url": self.response_url,
             "requesters_channel": self.requesters_channel,
             "token": self.token,
-            "ts": self.ts
+            "ts": self.ts,
         }
         try:
             client = WebClient(self.token)
@@ -161,6 +172,7 @@ class SlackProvision:
                 },
             )
         except errors.SlackApiError as e:
+            self.exception = e
             logger.error(e)
 
     def send_message_to_thread(self, message, thread_ts, channel):
@@ -172,6 +184,7 @@ class SlackProvision:
                 text=message,
             )
         except errors.SlackApiError as e:
+            self.exception = e
             logger.error(e)
 
     def is_reject_reason_view(self):
