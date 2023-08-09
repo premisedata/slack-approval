@@ -121,6 +121,17 @@ class SlackRequest:
                         "style": "danger",
                         "action_id": "Rejected",
                     },
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "emoji": True,
+                            "text": "Edit",
+                        },
+                        "value": value,
+                        "style": "default",
+                        "action_id": "Edit",
+                    },
                 ],
             }
         )

@@ -37,7 +37,7 @@ class SlackProvision:
         self.approvers_channel = self.inputs.pop("approvers_channel", None)
         self.user = self.parse_user()
         self.requester = self.inputs.get("requester", "")
-
+        self.modifiables_fields = self.capture_modifiable_fields()
         """ Requester can response depending on flag for prevent self approval and user-requester values
             Backward compatibility: prevent_self_approval deactivated """
         self.prevent_self_approval = self.inputs.get("prevent_self_approval", False)
@@ -84,6 +84,8 @@ class SlackProvision:
                 )
                 # Update status on messages
                 self.send_status_message(status="Rejected")
+            elif self.action_id == "Edit":
+                self.open_edit_view()
 
         except Exception as e:
             self.exception = e
@@ -285,3 +287,74 @@ class SlackProvision:
             )
         except errors.SlackApiError as e:
             logger.error(e)
+
+    def open_edit_view(self):
+        private_metadata = {
+            "channel_id": self.payload["channel"]["id"],
+            "message_ts": self.payload["message"]["ts"],
+            "name": self.inputs["provision_class"],
+            "inputs": self.inputs,
+            "user": self.user,
+            "response_url": self.response_url,
+            "requesters_channel": self.requesters_channel,
+            "token": self.token,
+            "ts": self.ts,
+            "modifiables_fields": self.modifiables_fields
+        }
+        try:
+            client = WebClient(self.token)
+            client.views_open(
+                trigger_id=self.payload["trigger_id"],
+                view={
+                    "type": "modal",
+                    "callback_id": "reject_reason_modal",
+                    "private_metadata": json.dumps(private_metadata),
+                    "title": {"type": "plain_text", "text": "Edit view"},
+                    "blocks": self.construct_modifiable_fields_blocks(),
+                    "submit": {"type": "plain_text", "text": "Save"},
+                },
+            )
+        except errors.SlackApiError as e:
+            self.exception = e
+            logger.error(e)
+
+    def construct_modifiable_fields_blocks(self):
+        blocks = []
+        for modifiable_field_name, modifiable_field_value in self.modifiables_fields:
+            field_block = [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "Modifiable fields"
+                    }
+                },
+                {
+                    "type": "input",
+                    "label": {
+                        "type": "plain_text",
+                        "text": modifiable_field_name
+                    },
+                    "element": {
+                        "type": "plain_text_input",
+                        "action_id": "input_modifiable_field_name",
+                        "placeholder": {
+                            "type": "plain_text",
+                            "text": modifiable_field_value
+                        },
+                        "multiline": False
+                    },
+                    "optional": True
+                }]
+            blocks.append(field_block)
+        return blocks
+
+    def capture_modifiable_fields(self):
+        modifiables_fields_names = self.inputs.get("modifiables_fields", "")
+        fields = modifiables_fields_names.split(";")
+        modifiables_fields = {}
+        for field in fields:
+            if field in self.inputs:
+                modifiables_fields[field] = self.inputs[field]
+        return modifiables_fields
+
