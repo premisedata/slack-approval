@@ -336,7 +336,7 @@ class SlackProvision:
                     },
                     "element": {
                         "type": "plain_text_input",
-                        "action_id": "input_modifiable_field_name",
+                        "action_id": f"input_{modifiable_field_name}",
                         "placeholder": {
                             "type": "plain_text",
                             "text": modifiable_field_value
@@ -346,6 +346,7 @@ class SlackProvision:
                     "optional": True
                 }
             blocks.append(field)
+        logger.info(f"blocks={blocks}")
         return blocks
 
     def capture_modifiable_fields(self):
