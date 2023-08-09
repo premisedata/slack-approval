@@ -67,7 +67,6 @@ class SlackProvision:
             elif self.action_id == "Not allowed":
                 message = f"Same request/response user {self.user} not allowed. Prevent self approval is on."
                 self.open_dialog(title="Warning", message=message)
-                self.send_message_to_thread(message=message, thread_ts=self.ts, channel=self.requesters_channel)
             elif self.action_id == "Reject Response":
                 self.rejected()
                 message = f"Reason for rejection: {self.reason}"
@@ -116,7 +115,7 @@ class SlackProvision:
             slack_web_client = WebClient(self.token)
             user_info = slack_web_client.users_info(user=self.user_payload["id"])
             user_email = user_info["user"]["profile"]["email"]
-            if user_email == self.requester:
+            if user_email == self.requester and self.action_id == "Approved":
                 return False
             else:
                 return True
