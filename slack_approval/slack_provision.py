@@ -343,6 +343,7 @@ class SlackProvision:
                             "type": "plain_text",
                             "text": modifiable_field_value
                         },
+                        "initial_value":modifiable_field_value,
                         "multiline": False
                     },
                     "optional": True
