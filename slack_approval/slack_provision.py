@@ -63,10 +63,10 @@ class SlackProvision:
                 self.approved()
                 self.send_status_message(status="Approved")
             elif self.action_id == "Rejected":
-                self.is_open_reason_view()
+                self.open_reject_reason_view()
             elif self.action_id == "Not allowed":
                 message = f"Same request/response user {self.user} not allowed. Prevent self approval is on."
-                self.send_message_to_thread(message=message, thread_ts=self.ts, channel=self.approvers_channel)
+                self.open_dialog(message=f"Not allowed for user {self.user}")
                 self.send_message_to_thread(message=message, thread_ts=self.ts, channel=self.requesters_channel)
             elif self.action_id == "Reject Response":
                 self.rejected()
@@ -135,7 +135,7 @@ class SlackProvision:
         except errors.SlackApiError as e:
             logger.error(e)
 
-    def is_open_reason_view(self):
+    def open_reject_reason_view(self):
         private_metadata = {
             "channel_id": self.payload["channel"]["id"],
             "message_ts": self.payload["message"]["ts"],
@@ -278,3 +278,26 @@ class SlackProvision:
                 }
             )
         return blocks
+
+    def open_dialog(self, message):
+        try:
+            client = WebClient(self.token)
+            client.views_open(
+                trigger_id=self.payload["trigger_id"],
+                view={
+                    "type": "modal",
+                    "title": {"type": "plain_text", "text": "Info"},
+                    "close": {"type": "plain_text", "text": "Close"},
+                    "blocks": [
+                        {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": message,
+                            },
+                        },
+                    ],
+                },
+            )
+        except errors.SlackApiError as e:
+            logger.error(e)
