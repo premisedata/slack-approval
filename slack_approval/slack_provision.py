@@ -75,6 +75,7 @@ class SlackProvision:
                 self.send_message_to_thread(message=message, thread_ts=self.ts, channel=self.channel_id)
                 # Message to requester same request message
                 self.send_message_to_thread(message=message, thread_ts=self.message_ts, channel=self.requesters_channel)
+                # Update status on messages
                 self.send_status_message(status="Rejected")
 
         except Exception as e:
@@ -119,19 +120,6 @@ class SlackProvision:
                 return False
             else:
                 return True
-        except errors.SlackApiError as e:
-            logger.error(e)
-
-    def send_not_allowed_message(self):
-        blocks = self.get_base_blocks()
-        try:
-            client = WebClient(self.token)
-            client.chat_update(
-                channel=self.requesters_channel,
-                ts=self.ts,
-                text="fallback",
-                blocks=blocks
-            )
         except errors.SlackApiError as e:
             logger.error(e)
 
