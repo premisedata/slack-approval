@@ -66,7 +66,7 @@ class SlackProvision:
                 self.open_reject_reason_view()
             elif self.action_id == "Not allowed":
                 message = f"Same request/response user {self.user} not allowed. Prevent self approval is on."
-                self.open_dialog(message=message)
+                self.open_dialog(title="Warning", message=message)
                 self.send_message_to_thread(message=message, thread_ts=self.ts, channel=self.requesters_channel)
             elif self.action_id == "Reject Response":
                 self.rejected()
@@ -279,7 +279,7 @@ class SlackProvision:
             )
         return blocks
 
-    def open_dialog(self, message):
+    def open_dialog(self, title, message):
         try:
             client = WebClient(self.token)
             client.views_open(
