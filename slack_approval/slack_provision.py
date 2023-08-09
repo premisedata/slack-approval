@@ -339,7 +339,8 @@ class SlackProvision:
                         "action_id": f"input_{modifiable_field_name}",
                         "placeholder": {
                             "type": "plain_text",
-                            "text": modifiable_field_value
+                            "text": modifiable_field_value,
+                            "value": modifiable_field_value
                         },
                         "multiline": False
                     },
