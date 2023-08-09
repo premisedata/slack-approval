@@ -129,7 +129,6 @@ class SlackRequest:
                             "text": "Edit",
                         },
                         "value": value,
-                        "style": "default",
                         "action_id": "Edit",
                     },
                 ],
