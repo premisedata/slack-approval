@@ -176,22 +176,6 @@ class SlackProvision:
         except errors.SlackApiError as e:
             logger.error(e)
 
-    def send_reject_reason(self):
-        try:
-            client = WebClient(self.token)
-            client.chat_postMessage(
-                channel=self.channel_id,
-                thread_ts=self.ts,
-                text=f"Reason for rejection: {self.reason}",
-            )
-            client.chat_postMessage(
-                channel=self.requesters_channel,
-                thread_ts=self.message_ts,
-                text=f"Reason for rejection: {self.reason}",
-            )
-        except errors.SlackApiError as e:
-            logger.error(e)
-
     def send_message_to_thread(self, message, thread_ts, channel):
         try:
             client = WebClient(self.token)
@@ -286,7 +270,7 @@ class SlackProvision:
                 trigger_id=self.payload["trigger_id"],
                 view={
                     "type": "modal",
-                    "title": {"type": "plain_text", "text": "Info"},
+                    "title": {"type": "plain_text", "text": title},
                     "close": {"type": "plain_text", "text": "Close"},
                     "blocks": [
                         {
