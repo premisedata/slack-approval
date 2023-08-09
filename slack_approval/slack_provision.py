@@ -319,17 +319,16 @@ class SlackProvision:
             logger.error(e)
 
     def construct_modifiable_fields_blocks(self):
-        blocks = []
-        for modifiable_field_name, modifiable_field_value in self.modifiables_fields.items():
-            field_block = [
-                {
+        blocks = [{
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
                         "text": "Modifiable fields"
                     }
-                },
-                {
+                }
+        ]
+        for modifiable_field_name, modifiable_field_value in self.modifiables_fields.items():
+            field = {
                     "type": "input",
                     "label": {
                         "type": "plain_text",
@@ -345,8 +344,8 @@ class SlackProvision:
                         "multiline": False
                     },
                     "optional": True
-                }]
-            blocks.append(field_block)
+                }
+            blocks.append(field)
         return blocks
 
     def capture_modifiable_fields(self):
