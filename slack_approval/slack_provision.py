@@ -320,7 +320,7 @@ class SlackProvision:
 
     def construct_modifiable_fields_blocks(self):
         blocks = []
-        for modifiable_field_name, modifiable_field_value in self.modifiables_fields:
+        for modifiable_field_name, modifiable_field_value in self.modifiables_fields.items():
             field_block = [
                 {
                     "type": "section",
