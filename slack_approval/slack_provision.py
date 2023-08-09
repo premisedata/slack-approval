@@ -19,11 +19,22 @@ class SlackProvision:
         self.payload = json.loads(request.form["payload"])
 
         # Comes from the reject response modal view (data comes in private metadata)
-        if self.is_reject_reason_view():
+        if self.is_callback_view(callback_id="reject_reason_modal"):
             # Some vars need to be defined so IDE dont complain
             self.channel_id = None
             self.reason = None
             self.get_private_metadata()
+            self.action_id = "Reject Response"
+            self.reason = self.payload["view"]["state"]["values"]["reason_block"][
+                "reject_reason_input"
+            ]["value"]
+            return
+        elif self.is_callback_view(callback_id="edit_view_modal"):
+            self.channel_id = None
+            self.reason = None
+            self.get_private_metadata()
+            self.action_id = "Modified"
+            self.get_modified_fields()
             return
 
         self.user_payload = self.payload["user"]
@@ -86,6 +97,8 @@ class SlackProvision:
                 self.send_status_message(status="Rejected")
             elif self.action_id == "Edit":
                 self.open_edit_view()
+            elif self.action_id == "Modified":
+                self.open_dialog("Modified", "Success")
 
         except Exception as e:
             self.exception = e
@@ -189,11 +202,11 @@ class SlackProvision:
             self.exception = e
             logger.error(e)
 
-    def is_reject_reason_view(self):
+    def is_callback_view(self, callback_id):
         return (
             self.payload.get("type", "") == "view_submission"
             and self.payload.get("view", False)
-            and self.payload["view"].get("callback_id", "") == "reject_reason_modal"
+            and self.payload["view"].get("callback_id", "") == callback_id
         )
 
     def parse_user(self):
@@ -212,10 +225,6 @@ class SlackProvision:
         self.response_url = metadata["response_url"]
         self.requesters_channel = metadata["requesters_channel"]
         self.token = metadata["token"]
-        self.reason = self.payload["view"]["state"]["values"]["reason_block"][
-            "reject_reason_input"
-        ]["value"]
-        self.action_id = "Reject Response"
         self.exception = None
 
     def get_base_blocks(self, status):
@@ -304,7 +313,7 @@ class SlackProvision:
         try:
             modal_view = {
                     "type": "modal",
-                    "callback_id": "reject_reason_modal",
+                    "callback_id": "edit_view_modal",
                     "private_metadata": json.dumps(private_metadata),
                     "title": {"type": "plain_text", "text": "Edit view"},
                     "blocks": self.construct_modifiable_fields_blocks(),
@@ -332,13 +341,14 @@ class SlackProvision:
         for modifiable_field_name, modifiable_field_value in self.modifiables_fields.items():
             field = {
                     "type": "input",
+                    "block_id": f"block_id_{modifiable_field_name}",
                     "label": {
                         "type": "plain_text",
                         "text": modifiable_field_name
                     },
                     "element": {
                         "type": "plain_text_input",
-                        "action_id": f"input_{modifiable_field_name}",
+                        "action_id": f"action_id_{modifiable_field_name}",
                         "placeholder": {
                             "type": "plain_text",
                             "text": modifiable_field_value
@@ -359,4 +369,11 @@ class SlackProvision:
             if field in self.inputs:
                 modifiables_fields[field] = self.inputs[field]
         return modifiables_fields
+
+    def get_modified_fields(self):
+
+        # self.reason = self.payload["view"]["state"]["values"]["block_id_{modifiable_field_name}"][
+        #     "action_id_{modifiable_field_name}"
+        # ]["value"]
+        return self.inputs
 
