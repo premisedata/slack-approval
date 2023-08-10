@@ -45,7 +45,7 @@ class SlackProvision:
             self.get_private_metadata()
             self.action_id = "Modified"
             self.get_modified_fields()
-            # self.send_modified_message()
+            self.send_modified_message()
             return
 
         self.user_payload = self.payload["user"]
