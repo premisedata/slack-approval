@@ -5,8 +5,14 @@ import logging
 from slack_sdk.signature import SignatureVerifier
 from slack_sdk import WebhookClient, WebClient, errors
 
+from slack_approval.utils import get_header_block, get_inputs_blocks, get_status_block, get_exception_block
+
 logger = logging.getLogger("slack_provision")
 logger.setLevel(logging.DEBUG)
+
+
+
+
 
 
 class SlackProvision:
@@ -231,50 +237,53 @@ class SlackProvision:
         self.exception = None
 
     def get_base_blocks(self, status):
-        blocks = [
-            {
-                "type": "header",
-                "text": {
-                    "type": "plain_text",
-                    "text": self.name,
-                    "emoji": True,
-                },
-            },
-            {"type": "divider"},
-        ]
-        input_blocks = [
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": f"*{' '.join([s.capitalize() for s in key.split('_')])}:* {value}",
-                },
-            }
-            for key, value in self.inputs.items()
-            if key != "provision_class"
-        ]
-        blocks.extend(input_blocks)
-        blocks.append({"type": "divider"})
-        blocks.append(
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": f"*Status: {status} by {self.user}*",
-                },
-            }
-        )
+        blocks = []
+
+        # blocks = [
+        #     {
+        #         "type": "header",
+        #         "text": {
+        #             "type": "plain_text",
+        #             "text": self.name,
+        #             "emoji": True,
+        #         },
+        #     },
+        #     {"type": "divider"},
+        # ]
+
+        blocks.extend(get_header_block(name=self.name))
+
+        # input_blocks = [
+        #     {
+        #         "type": "section",
+        #         "text": {
+        #             "type": "mrkdwn",
+        #             "text": f"*{' '.join([s.capitalize() for s in key.split('_')])}:* {value}",
+        #         },
+        #     }
+        #     for key, value in self.inputs.items()
+        #     if key != "provision_class"
+        # ]
+        # blocks.extend(input_blocks)
+        # blocks.append({"type": "divider"})
+
+        blocks.extend(get_inputs_blocks(self.inputs))
+
+        # blocks.append(
+        #     {
+        #         "type": "section",
+        #         "text": {
+        #             "type": "mrkdwn",
+        #             "text": f"*Status: {status} by {self.user}*",
+        #         },
+        #     }
+        # )
+
+        blocks.extend(get_status_block(status=status, user=self.user))
+
         if self.exception:
-            blocks.append({"type": "divider"})
-            blocks.append(
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": f"Error while provisioning: {self.exception}",
-                    },
-                }
-            )
+            blocks.extend(get_exception_block(self.exception))
+
         return blocks
 
     def open_dialog(self, title, message):

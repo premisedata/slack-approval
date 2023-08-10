@@ -3,6 +3,8 @@ import logging
 import json
 from slack_sdk import WebClient, errors
 
+from slack_approval.utils import get_buttons_blocks, get_header_block, get_inputs_blocks
+
 logger = logging.getLogger("slack_request")
 logger.setLevel(logging.DEBUG)
 
@@ -35,29 +37,31 @@ class SlackRequest:
 
     def send_request_message(self):
         slack_web_client = WebClient(self.token)
-        blocks = [
-            {
-                "type": "header",
-                "text": {
-                    "type": "plain_text",
-                    "text": self.name,
-                    "emoji": True,
-                },
-            },
-            {"type": "divider"},
-        ]
-        input_blocks = [
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": f"*{' '.join([s.capitalize() for s in key.split('_')])}:* {value}",
-                },
-            }
-            for key, value in self.inputs.items()
-            if key != "provision_class"
-        ]
-        blocks.extend(input_blocks)
+        blocks = []
+        blocks.extend(get_header_block(self.name))
+        #     [
+        #     {
+        #         "type": "header",
+        #         "text": {
+        #             "type": "plain_text",
+        #             "text": self.name,
+        #             "emoji": True,
+        #         },
+        #     },
+        #     {"type": "divider"},
+        # ]
+        # input_blocks = [
+        #     {
+        #         "type": "section",
+        #         "text": {
+        #             "type": "mrkdwn",
+        #             "text": f"*{' '.join([s.capitalize() for s in key.split('_')])}:* {value}",
+        #         },
+        #     }
+        #     for key, value in self.inputs.items()
+        #     if key != "provision_class"
+        # ]
+        blocks.extend(get_inputs_blocks(self.inputs))
         # First send to requesters channel
         try:
             response = slack_web_client.chat_postMessage(
@@ -80,60 +84,61 @@ class SlackRequest:
         except errors.SlackApiError as e:
             logger.error(e)
         value = json.dumps(self.value)
-        blocks.append(
-            {
-                "type": "actions",
-                "elements": [
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "emoji": True,
-                            "text": "Approve",
-                        },
-                        "style": "primary",
-                        "action_id": "Approved",
-                        "value": value,
-                        "confirm": {
-                            "title": {
-                                "type": "plain_text",
-                                "text": "Confirm",
-                            },
-                            "text": {
-                                "type": "mrkdwn",
-                                "text": "Are you sure?",
-                            },
-                            "confirm": {"type": "plain_text", "text": "Do it"},
-                            "deny": {
-                                "type": "plain_text",
-                                "text": "Stop, I've changed my mind!",
-                            },
-                        },
-                    },
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "emoji": True,
-                            "text": "Reject",
-                        },
-                        "value": value,
-                        "style": "danger",
-                        "action_id": "Rejected",
-                    },
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "emoji": True,
-                            "text": "Edit",
-                        },
-                        "value": value,
-                        "action_id": "Edit",
-                    },
-                ],
-            }
-        )
+        # blocks.append(
+        #     {
+        #         "type": "actions",
+        #         "elements": [
+        #             {
+        #                 "type": "button",
+        #                 "text": {
+        #                     "type": "plain_text",
+        #                     "emoji": True,
+        #                     "text": "Approve",
+        #                 },
+        #                 "style": "primary",
+        #                 "action_id": "Approved",
+        #                 "value": value,
+        #                 "confirm": {
+        #                     "title": {
+        #                         "type": "plain_text",
+        #                         "text": "Confirm",
+        #                     },
+        #                     "text": {
+        #                         "type": "mrkdwn",
+        #                         "text": "Are you sure?",
+        #                     },
+        #                     "confirm": {"type": "plain_text", "text": "Do it"},
+        #                     "deny": {
+        #                         "type": "plain_text",
+        #                         "text": "Stop, I've changed my mind!",
+        #                     },
+        #                 },
+        #             },
+        #             {
+        #                 "type": "button",
+        #                 "text": {
+        #                     "type": "plain_text",
+        #                     "emoji": True,
+        #                     "text": "Reject",
+        #                 },
+        #                 "value": value,
+        #                 "style": "danger",
+        #                 "action_id": "Rejected",
+        #             },
+        #             {
+        #                 "type": "button",
+        #                 "text": {
+        #                     "type": "plain_text",
+        #                     "emoji": True,
+        #                     "text": "Edit",
+        #                 },
+        #                 "value": value,
+        #                 "action_id": "Edit",
+        #             },
+        #         ],
+        #     }
+        # )
+        blocks.extend(get_buttons_blocks(value))
         # Send to approvers channel with `approve` and `reject` buttons
         try:
             response = slack_web_client.chat_postMessage(
