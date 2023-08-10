@@ -370,7 +370,9 @@ class SlackProvision:
             "requesters_channel": self.requesters_channel,
             "token": self.token,
             "ts": self.ts,
-            "modifiables_fields": self.modifiables_fields
+            "modifiables_fields": self.modifiables_fields,
+            "requester": self.requester,
+            "approvers_channel": self.approvers_channel
         }
         try:
             modal_view = {
