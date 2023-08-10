@@ -96,9 +96,11 @@ class SlackProvision:
                 # Update status on messages
                 self.send_status_message(status="Rejected")
             elif self.action_id == "Edit":
+                logger.info(f"Initial inputs = {self.inputs}")
                 self.open_edit_view()
             elif self.action_id == "Modified":
-                self.open_dialog("Modified", "Success")
+                self.open_dialog("Modification", "Success")
+                logger.info(f"Modified inputs = {self.inputs}")
 
         except Exception as e:
             self.exception = e
@@ -371,9 +373,13 @@ class SlackProvision:
         return modifiables_fields
 
     def get_modified_fields(self):
-
+        available_blocks = self.payload["view"]["state"]["values"]
+        for block_name, block_values in available_blocks.items():
+            if "block_id_" in block_name:
+                modifiable_field_name = block_name.replace("block_id_", "")
+                if f"action_id_{modifiable_field_name}" in block_values:
+                    self.inputs[modifiable_field_name] = block_values[f"action_id_{modifiable_field_name}"]["value"]
         # self.reason = self.payload["view"]["state"]["values"]["block_id_{modifiable_field_name}"][
         #     "action_id_{modifiable_field_name}"
         # ]["value"]
-        return self.inputs
 
