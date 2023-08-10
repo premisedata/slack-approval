@@ -39,12 +39,13 @@ class SlackProvision:
         elif self.is_callback_view(callback_id="edit_view_modal"):
             self.channel_id = None
             self.reason = None
-            self.action = self.payload["actions"][0]
-            self.inputs = json.loads(self.action["value"])
-            self.get_private_metadata()
-            self.action_id = "Modified"
-            self.get_modified_fields()
-            self.send_modified_message()
+            logger.info(self.payload)
+            # self.action = self.payload["actions"][0]
+            # self.inputs = json.loads(self.action["value"])
+            # self.get_private_metadata()
+            # self.action_id = "Modified"
+            # self.get_modified_fields()
+            # self.send_modified_message()
             return
 
         self.user_payload = self.payload["user"]
