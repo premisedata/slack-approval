@@ -5,7 +5,8 @@ import logging
 from slack_sdk.signature import SignatureVerifier
 from slack_sdk import WebhookClient, WebClient, errors
 
-from slack_approval.utils import get_header_block, get_inputs_blocks, get_status_block, get_exception_block
+from slack_approval.utils import get_header_block, get_inputs_blocks, get_status_block, get_exception_block, \
+    get_buttons_blocks
 
 logger = logging.getLogger("slack_provision")
 logger.setLevel(logging.DEBUG)
@@ -113,13 +114,12 @@ class SlackProvision:
             self.exception = e
             logger.error(e)
 
-    def send_status_message(self, status):
+    def send_message_approver(self, blocks):
         hide = self.inputs.get("hide")
         if hide:
             for field in hide:
                 self.inputs.pop(field, None)
             self.inputs.pop("hide")
-        blocks = self.get_base_blocks(status)
         try:
             # Message to approver
             slack_client = WebhookClient(self.response_url)
@@ -128,6 +128,7 @@ class SlackProvision:
         except errors.SlackApiError as e:
             self.exception = e
             logger.error(e)
+    def send_message_requester(self, blocks):
         try:
             # Message to requester
             slack_web_client = WebClient(self.token)
@@ -141,6 +142,49 @@ class SlackProvision:
         except errors.SlackApiError as e:
             self.exception = e
             logger.error(e)
+    
+    def send_modified_message(self):
+        hide = self.inputs.get("hide")
+        if hide:
+            for field in hide:
+                self.inputs.pop(field, None)
+            self.inputs.pop("hide")
+        blocks = []
+        blocks.extend(get_header_block(name=self.name))
+        blocks.extend(get_inputs_blocks(inputs=self.inputs))
+        blocks.extend(get_buttons_blocks(value=self.inputs.copy()))
+        self.send_message_approver(blocks)
+        self.send_message_requester(blocks)
+    def send_status_message(self, status):
+        hide = self.inputs.get("hide")
+        if hide:
+            for field in hide:
+                self.inputs.pop(field, None)
+            self.inputs.pop("hide")
+        blocks = self.get_status_blocks(status)
+        self.send_message_approver(blocks)
+        self.send_message_requester(blocks)
+        # try:
+        #     # Message to approver
+        #     slack_client = WebhookClient(self.response_url)
+        #     response = slack_client.send(text="fallback", blocks=blocks)
+        #     logger.info(response.status_code)
+        # except errors.SlackApiError as e:
+        #     self.exception = e
+        #     logger.error(e)
+        # try:
+        #     # Message to requester
+        #     slack_web_client = WebClient(self.token)
+        #     response = slack_web_client.chat_update(
+        #         channel=self.requesters_channel,
+        #         ts=self.ts,
+        #         text="fallback",
+        #         blocks=blocks,
+        #     )
+        #     logger.info(response.status_code)
+        # except errors.SlackApiError as e:
+        #     self.exception = e
+        #     logger.error(e)
 
     def is_allowed(self):
         if not self.prevent_self_approval:
@@ -236,7 +280,7 @@ class SlackProvision:
         self.token = metadata["token"]
         self.exception = None
 
-    def get_base_blocks(self, status):
+    def get_status_blocks(self, status):
         blocks = []
 
         # blocks = [
