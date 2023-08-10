@@ -42,7 +42,7 @@ class SlackProvision:
             self.get_private_metadata()
             self.action_id = "Modified"
             self.get_modified_fields()
-            self.send_status_message(status="Pending (modified) ")
+            self.send_modified_message()
             return
 
         self.user_payload = self.payload["user"]
@@ -142,7 +142,7 @@ class SlackProvision:
         except errors.SlackApiError as e:
             self.exception = e
             logger.error(e)
-    
+
     def send_modified_message(self):
         hide = self.inputs.get("hide")
         if hide:
