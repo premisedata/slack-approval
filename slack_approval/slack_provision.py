@@ -286,6 +286,7 @@ class SlackProvision:
         self.token = metadata["token"]
         self.exception = None
         self.requester = metadata["requester"]
+        self.prevent_self_approval = metadata["prevent_self_approval"]
 
 
     def get_status_blocks(self, status):
