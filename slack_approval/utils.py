@@ -32,8 +32,8 @@ def get_status_block(status, user):
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"*Status: {status} by {self.user}*",
-            },
+                "text": f"*Status: {status} by {user}*"
+            }
         }]
 
 def get_exception_block(exception):
