@@ -12,10 +12,6 @@ logger = logging.getLogger("slack_provision")
 logger.setLevel(logging.DEBUG)
 
 
-
-
-
-
 class SlackProvision:
     def __init__(self, request, requesters_channel=None):
         self.exception = None
@@ -45,7 +41,7 @@ class SlackProvision:
             self.get_private_metadata()
             self.action_id = "Modified"
             self.get_modified_fields()
-            #self.send_modified_message()
+            # self.send_modified_message()
             return
 
         self.user_payload = self.payload["user"]
@@ -132,6 +128,7 @@ class SlackProvision:
         except errors.SlackApiError as e:
             self.exception = e
             logger.error(e)
+
     def send_message_requester(self, blocks):
         try:
             # Message to requester
@@ -157,13 +154,13 @@ class SlackProvision:
         blocks.extend(get_header_block(name=self.name))
         blocks.extend(get_inputs_blocks(inputs=self.inputs))
         values = {"provision_class": self.name, "ts": self.ts, "requesters_channel": self.requesters_channel,
-                  "approvers_channel": self.approvers_channel, "user": self.user, "requester": self.requester,
+                  "user": self.user, "requester": self.requester,
                   "modifiables_fields": self.modifiables_fields, "prevent_self_approval": self.prevent_self_approval}
 
         self.send_message_requester(blocks)
         blocks.extend(get_buttons_blocks(value=json.dumps(values)))
         self.send_message_approver(blocks)
-        
+
     def send_status_message(self, status):
         hide = self.inputs.get("hide")
         if hide:
@@ -266,9 +263,9 @@ class SlackProvision:
 
     def is_callback_view(self, callback_id):
         return (
-            self.payload.get("type", "") == "view_submission"
-            and self.payload.get("view", False)
-            and self.payload["view"].get("callback_id", "") == callback_id
+                self.payload.get("type", "") == "view_submission"
+                and self.payload.get("view", False)
+                and self.payload["view"].get("callback_id", "") == callback_id
         )
 
     def parse_user(self):
@@ -377,13 +374,13 @@ class SlackProvision:
         }
         try:
             modal_view = {
-                    "type": "modal",
-                    "callback_id": "edit_view_modal",
-                    "private_metadata": json.dumps(private_metadata),
-                    "title": {"type": "plain_text", "text": "Edit view"},
-                    "blocks": self.construct_modifiable_fields_blocks(),
-                    "submit": {"type": "plain_text", "text": "Save"},
-                }
+                "type": "modal",
+                "callback_id": "edit_view_modal",
+                "private_metadata": json.dumps(private_metadata),
+                "title": {"type": "plain_text", "text": "Edit view"},
+                "blocks": self.construct_modifiable_fields_blocks(),
+                "submit": {"type": "plain_text", "text": "Save"},
+            }
             client = WebClient(self.token)
             client.views_open(
                 trigger_id=self.payload["trigger_id"],
@@ -396,33 +393,33 @@ class SlackProvision:
 
     def construct_modifiable_fields_blocks(self):
         blocks = [{
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": "Modifiable fields"
-                    }
-                }
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "Modifiable fields"
+            }
+        }
         ]
         for modifiable_field_name, modifiable_field_value in self.modifiables_fields.items():
             field = {
-                    "type": "input",
-                    "block_id": f"block_id_{modifiable_field_name}",
-                    "label": {
+                "type": "input",
+                "block_id": f"block_id_{modifiable_field_name}",
+                "label": {
+                    "type": "plain_text",
+                    "text": modifiable_field_name
+                },
+                "element": {
+                    "type": "plain_text_input",
+                    "action_id": f"action_id_{modifiable_field_name}",
+                    "placeholder": {
                         "type": "plain_text",
-                        "text": modifiable_field_name
+                        "text": modifiable_field_value
                     },
-                    "element": {
-                        "type": "plain_text_input",
-                        "action_id": f"action_id_{modifiable_field_name}",
-                        "placeholder": {
-                            "type": "plain_text",
-                            "text": modifiable_field_value
-                        },
-                        "initial_value":modifiable_field_value,
-                        "multiline": False
-                    },
-                    "optional": True
-                }
+                    "initial_value": modifiable_field_value,
+                    "multiline": False
+                },
+                "optional": True
+            }
             blocks.append(field)
         return blocks
 
@@ -442,7 +439,3 @@ class SlackProvision:
                 modifiable_field_name = block_name.replace("block_id_", "")
                 if f"action_id_{modifiable_field_name}" in block_values:
                     self.inputs[modifiable_field_name] = block_values[f"action_id_{modifiable_field_name}"]["value"]
-        # self.reason = self.payload["view"]["state"]["values"]["block_id_{modifiable_field_name}"][
-        #     "action_id_{modifiable_field_name}"
-        # ]["value"]
-
