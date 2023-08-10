@@ -285,6 +285,7 @@ class SlackProvision:
         self.requesters_channel = metadata["requesters_channel"]
         self.token = metadata["token"]
         self.exception = None
+        self.requester = metadata["requester"]
 
     def get_status_blocks(self, status):
         blocks = []
