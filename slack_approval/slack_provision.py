@@ -155,7 +155,7 @@ class SlackProvision:
         blocks.extend(get_inputs_blocks(inputs=self.inputs))
         values = {"provision_class": self.name, "ts": self.ts, "requesters_channel": self.requesters_channel,
                   "user": self.user, "requester": self.requester,
-                  "modifiables_fields": self.modifiables_fields, "prevent_self_approval": self.prevent_self_approval}
+                "prevent_self_approval": self.prevent_self_approval}
 
         self.send_message_requester(blocks)
         blocks.extend(get_buttons_blocks(value=json.dumps(values)))
@@ -287,6 +287,7 @@ class SlackProvision:
         self.exception = None
         self.requester = metadata["requester"]
 
+
     def get_status_blocks(self, status):
         blocks = []
 
@@ -373,7 +374,8 @@ class SlackProvision:
             "ts": self.ts,
             "modifiables_fields": self.modifiables_fields,
             "requester": self.requester,
-            "approvers_channel": self.approvers_channel
+            "approvers_channel": self.approvers_channel,
+            "prevent_self_approval": self.prevent_self_approval
         }
         try:
             modal_view = {
