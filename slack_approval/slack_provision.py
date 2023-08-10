@@ -45,7 +45,7 @@ class SlackProvision:
             self.get_private_metadata()
             self.action_id = "Modified"
             self.get_modified_fields()
-            self.send_modified_message()
+            #self.send_modified_message()
             return
 
         self.user_payload = self.payload["user"]
@@ -111,7 +111,7 @@ class SlackProvision:
                 self.open_edit_view()
             elif self.action_id == "Modified":
                 self.open_dialog("Modification", "Success")
-                #self.send_modified_message()
+                self.send_modified_message()
                 logger.info(f"Modified inputs = {self.inputs}")
 
         except Exception as e:
@@ -156,9 +156,14 @@ class SlackProvision:
         blocks = []
         blocks.extend(get_header_block(name=self.name))
         blocks.extend(get_inputs_blocks(inputs=self.inputs))
-        blocks.extend(get_buttons_blocks(value=json.dumps(self.inputs.copy())))
+        values = {"provision_class": self.name, "ts": self.ts, "requesters_channel": self.requesters_channel,
+                  "approvers_channel": self.approvers_channel, "user": self.user, "requester": self.requester,
+                  "modifiables_fields": self.modifiables_fields, "prevent_self_approval": self.prevent_self_approval}
+
+        self.send_message_requester(blocks)
+        blocks.extend(get_buttons_blocks(value=json.dumps(values)))
         self.send_message_approver(blocks)
-        # self.send_message_requester(blocks)
+        
     def send_status_message(self, status):
         hide = self.inputs.get("hide")
         if hide:
