@@ -154,7 +154,7 @@ class SlackProvision:
         blocks = []
         blocks.extend(get_header_block(name=self.name))
         blocks.extend(get_inputs_blocks(inputs=self.inputs))
-        blocks.extend(get_buttons_blocks(value=self.inputs.copy()))
+        blocks.extend(get_buttons_blocks(value=json.dumps(self.inputs.copy())))
         self.send_message_approver(blocks)
         self.send_message_requester(blocks)
     def send_status_message(self, status):
