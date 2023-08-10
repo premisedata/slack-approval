@@ -42,9 +42,9 @@ class SlackProvision:
             logger.info(self.payload)
             # self.action = self.payload["actions"][0]
             # self.inputs = json.loads(self.action["value"])
-            # self.get_private_metadata()
-            # self.action_id = "Modified"
-            # self.get_modified_fields()
+            self.get_private_metadata()
+            self.action_id = "Modified"
+            self.get_modified_fields()
             # self.send_modified_message()
             return
 
@@ -111,6 +111,7 @@ class SlackProvision:
                 self.open_edit_view()
             elif self.action_id == "Modified":
                 self.open_dialog("Modification", "Success")
+                #self.send_modified_message()
                 logger.info(f"Modified inputs = {self.inputs}")
 
         except Exception as e:
