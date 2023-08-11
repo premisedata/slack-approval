@@ -107,7 +107,7 @@ class SlackProvision:
                 logger.info(f"Initial inputs = {self.inputs}")
                 self.open_edit_view()
             elif self.action_id == "Modified":
-                self.open_dialog("Modification", "Success")
+                #self.open_dialog("Modification", "Success")
                 self.send_modified_message()
                 logger.info(f"Modified inputs = {self.inputs}")
 
@@ -264,6 +264,7 @@ class SlackProvision:
         self.user = metadata["user"]
         self.response_url = metadata["response_url"]
         self.requesters_channel = metadata["requesters_channel"]
+        self.approvers_channel = metadata["approvers_channel"]
         self.token = metadata["token"]
         self.exception = None
         self.requester = metadata["requester"]
