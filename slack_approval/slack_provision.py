@@ -199,7 +199,9 @@ class SlackProvision:
             "requesters_channel": self.requesters_channel,
             "token": self.token,
             "ts": self.ts,
-            "approvers_channel": self.approvers_channel
+            "approvers_channel": self.approvers_channel,
+            "requester": self.requester,
+            "prevent_self_approval": self.prevent_self_approval
         }
         try:
             client = WebClient(self.token)
