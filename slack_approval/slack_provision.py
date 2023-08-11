@@ -37,10 +37,10 @@ class SlackProvision:
             self.reason = None
             logger.info(self.payload)
             self.get_private_metadata()
-            self.action_id = ""
+            self.action_id = "Modified"
             self.get_modified_fields()
             logger.info(f"payload {self.payload}")
-            # self.send_modified_message()
+            #self.send_modified_message()
             return
 
         self.user_payload = self.payload["user"]
@@ -152,10 +152,7 @@ class SlackProvision:
         blocks = []
         blocks.extend(get_header_block(name=self.name))
         blocks.extend(get_inputs_blocks(inputs=self.inputs))
-        values = {"provision_class": self.name, "ts": self.ts, "requesters_channel": self.requesters_channel,
-                  "user": self.user, "requester": self.requester,
-                "prevent_self_approval": self.prevent_self_approval}
-
+        values = self.inputs
         self.send_message_requester(blocks)
         blocks.extend(get_buttons_blocks(value=json.dumps(values)))
         self.send_message_approver(blocks)
