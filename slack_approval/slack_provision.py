@@ -46,18 +46,20 @@ class SlackProvision:
         self.user_payload = self.payload["user"]
         self.action = self.payload["actions"][0]
         self.inputs = json.loads(self.action["value"])
-        self.name = self.inputs["provision_class"]
         self.response_url = self.payload["response_url"]
         self.action_id = self.action["action_id"]
+        self.user = self.parse_user()
+
+        self.name = self.inputs["provision_class"]
         self.ts = self.inputs.pop("ts")
         self.requesters_channel = self.inputs.pop("requesters_channel")
         self.approvers_channel = self.inputs.pop("approvers_channel", None)
-        self.user = self.parse_user()
         self.requester = self.inputs.get("requester", "")
-        self.modifiables_fields = self.capture_modifiable_fields()
+        self.modifiables_fields = self.get_modifiable_fields()
         """ Requester can response depending on flag for prevent self approval and user-requester values
             Backward compatibility: prevent_self_approval deactivated """
         self.prevent_self_approval = self.inputs.get("prevent_self_approval", False)
+
         if not self.is_allowed():
             self.action_id = "Not allowed"
 
@@ -166,27 +168,7 @@ class SlackProvision:
         blocks = self.get_status_blocks(status)
         self.send_message_approver(blocks)
         self.send_message_requester(blocks)
-        # try:
-        #     # Message to approver
-        #     slack_client = WebhookClient(self.response_url)
-        #     response = slack_client.send(text="fallback", blocks=blocks)
-        #     logger.info(response.status_code)
-        # except errors.SlackApiError as e:
-        #     self.exception = e
-        #     logger.error(e)
-        # try:
-        #     # Message to requester
-        #     slack_web_client = WebClient(self.token)
-        #     response = slack_web_client.chat_update(
-        #         channel=self.requesters_channel,
-        #         ts=self.ts,
-        #         text="fallback",
-        #         blocks=blocks,
-        #     )
-        #     logger.info(response.status_code)
-        # except errors.SlackApiError as e:
-        #     self.exception = e
-        #     logger.error(e)
+
 
     def is_allowed(self):
         if not self.prevent_self_approval:
@@ -425,7 +407,7 @@ class SlackProvision:
             blocks.append(field)
         return blocks
 
-    def capture_modifiable_fields(self):
+    def get_modifiable_fields(self):
         modifiables_fields_names = self.inputs.get("modifiables_fields", "")
         fields = modifiables_fields_names.split(";")
         modifiables_fields = {}
