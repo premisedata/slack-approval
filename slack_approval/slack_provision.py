@@ -39,8 +39,10 @@ class SlackProvision:
             # self.action = self.payload["actions"][0]
             # self.inputs = json.loads(self.action["value"])
             self.get_private_metadata()
-            self.action_id = "Modified"
+            self.action_id = ""
             self.get_modified_fields()
+            logger.info(f"payload {self.payload}")
+            logger.info(f"data = {self.data}")
             # self.send_modified_message()
             return
 
