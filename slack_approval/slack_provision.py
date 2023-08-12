@@ -258,7 +258,6 @@ class SlackProvision:
                 }
             )
         if self.exception:
-            blocks.append({"type": "divider"})
             blocks.append(
                 {
                     "type": "section",
