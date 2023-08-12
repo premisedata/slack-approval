@@ -60,15 +60,18 @@ class SlackProvision:
         logger.info("request rejected")
 
     def __call__(self):
+        status = "Pending"
         try:
             if self.action_id == "Approved":
                 self.approved()
-                self.send_status_message(status="Approved")
+                status = "Approved"
             elif self.action_id == "Rejected":
                 self.open_reject_reason_view()
+                return
             elif self.action_id == "Not allowed":
                 message = f"Same request/response user {self.user} not allowed. Prevent self approval is on."
                 self.open_dialog(title="Warning", message=message)
+                return
             elif self.action_id == "Reject Response":
                 self.rejected()
                 message = f"Reason for rejection: {self.reason}"
@@ -83,11 +86,14 @@ class SlackProvision:
                     channel=self.requesters_channel,
                 )
                 # Update status on messages
-                self.send_status_message(status="Rejected")
+                status = "Rejected"
 
         except Exception as e:
             self.exception = e
             logger.error(e)
+            status = "Error"
+
+        self.send_status_message(status)
 
     def send_status_message(self, status):
         hide = self.inputs.get("hide")
