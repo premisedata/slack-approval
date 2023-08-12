@@ -77,12 +77,12 @@ class SlackProvision:
                 message = f"Reason for rejection: {self.reason}"
                 # Message to approver same request message thread
                 self.send_message_to_thread(
-                    message=message, thread_ts=self.ts, channel=self.channel_id
+                    message=message, thread_ts=self.message_ts, channel=self.channel_id
                 )
                 # Message to requester same request message
                 self.send_message_to_thread(
                     message=message,
-                    thread_ts=self.message_ts,
+                    thread_ts=self.ts,
                     channel=self.requesters_channel,
                 )
                 # Update status on messages
