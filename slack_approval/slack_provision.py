@@ -91,6 +91,7 @@ class SlackProvision:
         except Exception as e:
             self.exception = e
             logger.error(e)
+            status = None
 
         self.send_status_message(status)
 
