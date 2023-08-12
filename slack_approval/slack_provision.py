@@ -60,7 +60,7 @@ class SlackProvision:
         logger.info("request rejected")
 
     def __call__(self):
-        status = "Pending"
+        status = None
         try:
             if self.action_id == "Approved":
                 self.approved()
@@ -91,7 +91,6 @@ class SlackProvision:
         except Exception as e:
             self.exception = e
             logger.error(e)
-            status = "Error"
 
         self.send_status_message(status)
 
@@ -247,15 +246,16 @@ class SlackProvision:
         ]
         blocks.extend(input_blocks)
         blocks.append({"type": "divider"})
-        blocks.append(
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": f"*Status: {status} by {self.user}*",
-                },
-            }
-        )
+        if status:
+            blocks.append(
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": f"*Status: {status} by {self.user}*",
+                    },
+                }
+            )
         if self.exception:
             blocks.append({"type": "divider"})
             blocks.append(
