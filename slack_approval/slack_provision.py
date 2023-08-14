@@ -67,12 +67,10 @@ class SlackProvision:
                 status = "Approved"
             elif self.action_id == "Rejected":
                 self.open_reject_reason_view()
-                raise Exception("Error on action_id Rejected")
                 return
             elif self.action_id == "Not allowed":
                 message = f"Same request/response user {self.user} not allowed. Prevent self approval is on."
                 self.open_dialog(title="Warning", message=message)
-                raise Exception("Error on action_id Not Allowed")
                 return
             elif self.action_id == "Reject Response":
                 self.rejected()
@@ -89,7 +87,6 @@ class SlackProvision:
                 )
                 # Update status on messages
                 status = "Rejected"
-                raise Exception("Error on action_id Reason rejection")
 
         except Exception as e:
             self.exception = e
