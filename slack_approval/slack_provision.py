@@ -125,6 +125,8 @@ class SlackProvision:
             logger.error(e)
 
     def is_allowed(self):
+        logger.info(f"requester {self.requester} ")
+
         if not self.prevent_self_approval:
             return True
         try:
