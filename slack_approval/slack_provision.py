@@ -131,6 +131,7 @@ class SlackProvision:
             slack_web_client = WebClient(self.token)
             user_info = slack_web_client.users_info(user=self.user_payload["id"])
             user_email = user_info["user"]["profile"]["email"]
+            logger.info(f"user {user_email} requester {self.requester} ")
             if user_email == self.requester and self.action_id == "Approved":
                 return False
             else:
