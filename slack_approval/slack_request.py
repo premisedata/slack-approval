@@ -40,6 +40,7 @@ class SlackRequest:
         blocks = []
         blocks.extend(get_header_block(self.name))
         blocks.extend(get_inputs_blocks(self.inputs))
+
         # First send to requesters channel
         try:
             response = slack_web_client.chat_postMessage(
@@ -64,6 +65,7 @@ class SlackRequest:
         value = json.dumps(self.value)
 
         blocks.extend(get_buttons_blocks(value))
+
         # Send to approvers channel with `approve` and `reject` buttons
         try:
             response = slack_web_client.chat_postMessage(

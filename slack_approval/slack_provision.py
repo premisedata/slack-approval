@@ -65,6 +65,7 @@ class SlackProvision:
         self.prevent_self_approval = self.inputs.get("prevent_self_approval", False)
         self.inputs["modified"] = self.inputs.get("modified", False)
 
+
         if not self.is_allowed():
             self.action_id = "Not allowed"
 
@@ -143,8 +144,8 @@ class SlackProvision:
                 ts=self.ts,
                 text="fallback",
                 blocks=blocks,
+
             )
-            logger.info(response.status_code)
         except errors.SlackApiError as e:
             self.exception = e
             logger.error(e)
