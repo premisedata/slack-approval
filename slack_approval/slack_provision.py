@@ -20,12 +20,13 @@ class SlackProvision:
 
         # Comes from the reject response modal view (data comes in private metadata)
         if self.is_reject_reason_view():
+            logger.info("passed view")
+
             # Some vars need to be defined so IDE dont complain
             self.channel_id = None
             self.reason = None
             self.get_private_metadata()
             return
-        logger.info("passed")
 
         self.user_payload = self.payload["user"]
         self.action = self.payload["actions"][0]
