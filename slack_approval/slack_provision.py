@@ -29,6 +29,7 @@ class SlackProvision:
         self.user_payload = self.payload["user"]
         self.action = self.payload["actions"][0]
         self.inputs = json.loads(self.action["value"])
+        self.inputs["user_payload"] = self.user_payload
         self.name = self.inputs["provision_class"]
         self.response_url = self.payload["response_url"]
         self.action_id = self.action["action_id"]
@@ -51,11 +52,9 @@ class SlackProvision:
         verifier = SignatureVerifier(signing_secret)
         return verifier.is_valid(self.data, timestamp, signature)
 
-    @staticmethod
     def approved():
         logger.info("request approved")
 
-    @staticmethod
     def rejected():
         logger.info("request rejected")
 
