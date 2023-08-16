@@ -25,6 +25,7 @@ class SlackProvision:
             self.reason = None
             self.get_private_metadata()
             return
+        logger.info("passed")
 
         self.user_payload = self.payload["user"]
         self.action = self.payload["actions"][0]
