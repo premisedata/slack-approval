@@ -60,34 +60,42 @@ class SlackProvision:
         logger.info("request rejected")
 
     def __call__(self):
+        status = None
         try:
             if self.action_id == "Approved":
                 self.approved()
-                self.send_status_message(status="Approved")
+                status = "Approved"
             elif self.action_id == "Rejected":
                 self.open_reject_reason_view()
+                return
             elif self.action_id == "Not allowed":
                 message = f"Same request/response user {self.user} not allowed. Prevent self approval is on."
                 self.open_dialog(title="Warning", message=message)
+                return
             elif self.action_id == "Reject Response":
                 self.rejected()
                 message = f"Reason for rejection: {self.reason}"
                 # Message to approver same request message thread
                 self.send_message_to_thread(
-                    message=message, thread_ts=self.ts, channel=self.channel_id
+                    message=message, thread_ts=self.message_ts, channel=self.channel_id
                 )
                 # Message to requester same request message
                 self.send_message_to_thread(
                     message=message,
-                    thread_ts=self.message_ts,
+                    thread_ts=self.ts,
                     channel=self.requesters_channel,
                 )
                 # Update status on messages
-                self.send_status_message(status="Rejected")
+                status = "Rejected"
+
 
         except Exception as e:
             self.exception = e
             logger.error(e)
+            status = "Error"
+
+        self.send_status_message(status)
+
 
     def send_status_message(self, status):
         hide = self.inputs.get("hide")
@@ -100,7 +108,6 @@ class SlackProvision:
             # Message to approver
             slack_client = WebhookClient(self.response_url)
             response = slack_client.send(text="fallback", blocks=blocks)
-            logger.info(response.status_code)
         except errors.SlackApiError as e:
             self.exception = e
             logger.error(e)
@@ -113,7 +120,6 @@ class SlackProvision:
                 text="fallback",
                 blocks=blocks,
             )
-            logger.info(response.status_code)
         except errors.SlackApiError as e:
             self.exception = e
             logger.error(e)
@@ -241,17 +247,18 @@ class SlackProvision:
         ]
         blocks.extend(input_blocks)
         blocks.append({"type": "divider"})
-        blocks.append(
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": f"*Status: {status} by {self.user}*",
-                },
-            }
-        )
+        if status:
+            blocks.append(
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": f"*Status: {status} by {self.user}*",
+                    },
+                }
+            )
+
         if self.exception:
-            blocks.append({"type": "divider"})
             blocks.append(
                 {
                     "type": "section",
