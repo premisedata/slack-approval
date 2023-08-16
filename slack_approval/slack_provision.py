@@ -88,12 +88,14 @@ class SlackProvision:
                 # Update status on messages
                 status = "Rejected"
 
+
         except Exception as e:
             self.exception = e
             logger.error(e)
             status = "Error"
 
         self.send_status_message(status)
+
 
     def send_status_message(self, status):
         hide = self.inputs.get("hide")
@@ -255,6 +257,7 @@ class SlackProvision:
                     },
                 }
             )
+
         if self.exception:
             blocks.append(
                 {
