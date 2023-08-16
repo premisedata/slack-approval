@@ -20,8 +20,6 @@ class SlackProvision:
 
         # Comes from the reject response modal view (data comes in private metadata)
         if self.is_reject_reason_view():
-            logger.info("passed view")
-
             # Some vars need to be defined so IDE dont complain
             self.channel_id = None
             self.reason = None
@@ -46,7 +44,6 @@ class SlackProvision:
         self.prevent_self_approval = self.inputs.get("prevent_self_approval", False)
         if not self.is_allowed():
             self.action_id = "Not allowed"
-        logger.info("passed")
 
     def is_valid_signature(self, signing_secret):
         """Validates the request from the Slack integration"""
@@ -55,9 +52,11 @@ class SlackProvision:
         verifier = SignatureVerifier(signing_secret)
         return verifier.is_valid(self.data, timestamp, signature)
 
+    @staticmethod
     def approved():
         logger.info("request approved")
 
+    @staticmethod
     def rejected():
         logger.info("request rejected")
 
@@ -108,7 +107,6 @@ class SlackProvision:
             # Message to approver
             slack_client = WebhookClient(self.response_url)
             response = slack_client.send(text="fallback", blocks=blocks)
-            logger.info(response.status_code)
         except errors.SlackApiError as e:
             self.exception = e
             logger.error(e)
@@ -121,21 +119,17 @@ class SlackProvision:
                 text="fallback",
                 blocks=blocks,
             )
-            logger.info(response.status_code)
         except errors.SlackApiError as e:
             self.exception = e
             logger.error(e)
 
     def is_allowed(self):
-        logger.info(f"requester {self.requester} ")
-
         if not self.prevent_self_approval:
             return True
         try:
             slack_web_client = WebClient(self.token)
             user_info = slack_web_client.users_info(user=self.user_payload["id"])
             user_email = user_info["user"]["profile"]["email"]
-            logger.info(f"user {user_email} requester {self.requester} ")
             if user_email == self.requester and self.action_id == "Approved":
                 return False
             else:
