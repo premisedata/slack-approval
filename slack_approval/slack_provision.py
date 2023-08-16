@@ -44,6 +44,7 @@ class SlackProvision:
         self.prevent_self_approval = self.inputs.get("prevent_self_approval", False)
         if not self.is_allowed():
             self.action_id = "Not allowed"
+        logger.info("passed")
 
     def is_valid_signature(self, signing_secret):
         """Validates the request from the Slack integration"""
