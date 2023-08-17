@@ -88,6 +88,7 @@ class SlackProvision:
                 self.approved()
             elif self.action_id == "Rejected":
                 self.open_reject_reason_view()
+                return
             elif self.action_id == "Not allowed":
                 message = f"Same request/response user {self.user} not allowed. Prevent self approval is on."
                 self.open_dialog(title="Warning", message=message)
