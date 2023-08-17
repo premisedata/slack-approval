@@ -62,7 +62,6 @@ class SlackProvision:
         self.prevent_self_approval = self.inputs.get("prevent_self_approval", False)
         self.inputs["modified"] = self.inputs.get("modified", False)
 
-
         if not self.is_allowed():
             self.action_id = "Not allowed"
 
@@ -85,12 +84,12 @@ class SlackProvision:
         try:
             if self.action_id == "Approved":
                 self.approved()
-                self.send_status_message(status="Approved")
             elif self.action_id == "Rejected":
                 self.open_reject_reason_view()
             elif self.action_id == "Not allowed":
                 message = f"Same request/response user {self.user} not allowed. Prevent self approval is on."
                 self.open_dialog(title="Warning", message=message)
+                return
             elif self.action_id == "Reject Response":
                 self.rejected()
                 message = f"Reason for rejection: {self.reason}"
@@ -98,22 +97,22 @@ class SlackProvision:
                 self.send_message_to_thread(
                     message=message, thread_ts=self.message_ts, channel=self.channel_id
                 )
-                # Message to requester same request message
                 self.send_message_to_thread(
                     message=message,
                     thread_ts=self.ts,
                     channel=self.requesters_channel,
                 )
-                # Update status on messages
-                self.send_status_message(status="Rejected")
             elif self.action_id == "Edit":
                 self.open_edit_view()
+                return
             elif self.action_id == "Modified":
                 self.send_modified_message()
+                return
 
         except Exception as e:
             self.exception = e
             logger.error(e, stack_info=True, exc_info=True)
+        self.send_status_message(status=self.action_id)
 
     def send_message_approver(self, blocks):
         hide = self.inputs.get("hide")
@@ -138,7 +137,6 @@ class SlackProvision:
                 ts=self.ts,
                 text="fallback",
                 blocks=blocks,
-
             )
         except errors.SlackApiError as e:
             self.exception = e
@@ -266,7 +264,6 @@ class SlackProvision:
 
     def get_private_metadata(self):
         metadata = json.loads(self.payload["view"]["private_metadata"])
-        logger.info(f"private metadata {metadata}")
         self.channel_id = metadata["channel_id"]
         self.ts = metadata["ts"]
         self.message_ts = metadata["message_ts"]
@@ -283,49 +280,9 @@ class SlackProvision:
 
     def get_status_blocks(self, status):
         blocks = []
-
-        # blocks = [
-        #     {
-        #         "type": "header",
-        #         "text": {
-        #             "type": "plain_text",
-        #             "text": self.name,
-        #             "emoji": True,
-        #         },
-        #     },
-        #     {"type": "divider"},
-        # ]
-
         blocks.extend(get_header_block(name=self.name))
-
-        # input_blocks = [
-        #     {
-        #         "type": "section",
-        #         "text": {
-        #             "type": "mrkdwn",
-        #             "text": f"*{' '.join([s.capitalize() for s in key.split('_')])}:* {value}",
-        #         },
-        #     }
-        #     for key, value in self.inputs.items()
-        #     if key != "provision_class"
-        # ]
-        # blocks.extend(input_blocks)
-        # blocks.append({"type": "divider"})
-
         blocks.extend(get_inputs_blocks(self.inputs))
-
-        # blocks.append(
-        #     {
-        #         "type": "section",
-        #         "text": {
-        #             "type": "mrkdwn",
-        #             "text": f"*Status: {status} by {self.user}*",
-        #         },
-        #     }
-        # )
-
         blocks.extend(get_status_block(status=status, user=self.user))
-
         if self.exception:
             blocks.extend(get_exception_block(self.exception))
 
@@ -423,14 +380,13 @@ class SlackProvision:
 
     def get_modified_fields(self):
         available_blocks = self.payload["view"]["state"]["values"]
-        for block_name, block_values in available_blocks.items():
-            if "block_id_" in block_name:
-                modifiable_field_name = block_name.replace("block_id_", "")
-                if f"action_id_{modifiable_field_name}" in block_values:
-                    actual_value = self.inputs[modifiable_field_name]
-                    new_value = block_values[f"action_id_{modifiable_field_name}"][
-                        "value"
-                    ]
-                    if actual_value != new_value:
-                        self.inputs["modified"] = True
-                        self.inputs[modifiable_field_name] = new_value
+        blocks = {block_name.replace("block_id_", ""): block_values for block_name, block_values in available_blocks.items() if "block_id_" in block_name}
+        for block_name, block_values in  blocks:
+            if f"action_id_{block_name}" in block_values:
+                actual_value = self.inputs[block_name]
+                new_value = block_values[f"action_id_{block_name}"][
+                    "value"
+                ]
+                if actual_value != new_value:
+                    self.inputs["modified"] = True
+                    self.inputs[block_name] = new_value
