@@ -266,6 +266,7 @@ class SlackProvision:
 
     def get_private_metadata(self):
         metadata = json.loads(self.payload["view"]["private_metadata"])
+        logger.info(f"private metadata {metadata}")
         self.channel_id = metadata["channel_id"]
         self.ts = metadata["ts"]
         self.message_ts = metadata["message_ts"]
