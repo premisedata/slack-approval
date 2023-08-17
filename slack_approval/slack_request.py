@@ -71,6 +71,5 @@ class SlackRequest:
             response = slack_web_client.chat_postMessage(
                 channel=self.approvers_channel, text="fallback", blocks=blocks
             )
-            logger.info(response.status_code)
         except errors.SlackApiError as e:
             logger.error(e)
