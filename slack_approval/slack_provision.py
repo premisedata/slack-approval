@@ -25,7 +25,6 @@ class SlackProvision:
         self.data = request.get_data()
         self.headers = request.headers
         self.payload = json.loads(request.form["payload"])
-        logger.info(f"original payload = {self.payload}")
         # Comes from the reject response modal view (data comes in private metadata)
         if self.is_callback_view(callback_id="reject_reason_modal"):
             # Some vars need to be defined so IDE dont complain
@@ -40,11 +39,9 @@ class SlackProvision:
         elif self.is_callback_view(callback_id="edit_view_modal"):
             self.channel_id = None
             self.reason = None
-            logger.info(self.payload)
             self.get_private_metadata()
             self.action_id = "Modified"
             self.get_modified_fields()
-            logger.info(f"payload {self.payload}")
             return
 
         self.user_payload = self.payload["user"]
@@ -110,11 +107,9 @@ class SlackProvision:
                 # Update status on messages
                 self.send_status_message(status="Rejected")
             elif self.action_id == "Edit":
-                logger.info(f"Initial inputs = {self.inputs}")
                 self.open_edit_view()
             elif self.action_id == "Modified":
                 self.send_modified_message()
-                logger.info(f"Modified inputs = {self.inputs}")
 
         except Exception as e:
             self.exception = e
@@ -130,7 +125,6 @@ class SlackProvision:
             # Message to approver
             slack_client = WebhookClient(self.response_url)
             response = slack_client.send(text="fallback", blocks=blocks)
-            logger.info(response.status_code)
         except errors.SlackApiError as e:
             self.exception = e
             logger.error(e)
@@ -386,7 +380,6 @@ class SlackProvision:
             }
             client = WebClient(self.token)
             client.views_open(trigger_id=self.payload["trigger_id"], view=modal_view)
-            logger.info(f"modal view =   {modal_view}")
         except errors.SlackApiError as e:
             self.exception = e
             logger.error(e)
