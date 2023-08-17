@@ -123,6 +123,7 @@ class SlackProvision:
                 ts=self.ts,
                 text="fallback",
                 blocks=blocks,
+                as_user=True
             )
         except errors.SlackApiError as e:
             self.exception = e
