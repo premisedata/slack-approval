@@ -18,7 +18,7 @@ logger.setLevel(logging.DEBUG)
 
 
 class SlackProvision:
-    def __init__(self, request, requesters_channel=None):
+    def __init__(self, request):
         self.exception = None
         self.message_ts = None
         self.token = os.environ.get("SLACK_BOT_TOKEN")
@@ -27,9 +27,9 @@ class SlackProvision:
         self.payload = json.loads(request.form["payload"])
         # Comes from the reject response modal view (data comes in private metadata)
         if self.is_callback_view(callback_id="reject_reason_modal"):
-            # Some vars need to be defined so IDE dont complain
             self.channel_id = None
             self.reason = None
+            logger.info(self.payload)
             self.get_private_metadata()
             self.action_id = "Reject Response"
             self.reason = self.payload["view"]["state"]["values"]["reason_block"][
@@ -52,7 +52,7 @@ class SlackProvision:
         self.user = self.parse_user()
 
         self.name = self.inputs["provision_class"]
-        self.ts = self.inputs.pop("ts")
+        self.requesters_ts = self.inputs.pop("ts")
         self.approvers_ts = self.payload["container"]["message_ts"]
         self.requesters_channel = self.inputs.pop("requesters_channel")
         self.approvers_channel = self.inputs.pop("approvers_channel", None)
@@ -101,7 +101,7 @@ class SlackProvision:
                 )
                 self.send_message_to_thread(
                     message=message,
-                    thread_ts=self.ts,
+                    thread_ts=self.requesters_ts,
                     channel=self.requesters_channel,
                 )
             elif self.action_id == "Edit":
@@ -145,7 +145,7 @@ class SlackProvision:
             slack_web_client = WebClient(self.token)
             response = slack_web_client.chat_update(
                 channel=self.requesters_channel,
-                ts=self.ts,
+                ts=self.requesters_ts,
                 blocks=blocks,
                 text="fallback"
             )
@@ -166,7 +166,7 @@ class SlackProvision:
         inputs.pop("requesters_channel", None)
         inputs.pop("approvers_channel", None)
         blocks.extend(get_inputs_blocks(inputs=self.inputs))
-        self.inputs["ts"] = self.ts
+        self.inputs["requesters_ts"] = self.requesters_ts
         self.inputs["requesters_channel"] = self.requesters_channel
         self.inputs["approvers_channel"] = self.approvers_channel
         values = self.inputs
@@ -214,7 +214,7 @@ class SlackProvision:
             "response_url": self.response_url,
             "requesters_channel": self.requesters_channel,
             "token": self.token,
-            "ts": self.ts,
+            "requesters_ts": self.requesters_ts,
             "approvers_channel": self.approvers_channel,
             "requester": self.requester,
             "prevent_self_approval": self.prevent_self_approval,
@@ -276,7 +276,7 @@ class SlackProvision:
     def get_private_metadata(self):
         metadata = json.loads(self.payload["view"]["private_metadata"])
         self.channel_id = metadata["channel_id"]
-        self.ts = metadata["ts"]
+        self.requesters_ts = metadata["reuqesters_ts"]
         self.message_ts = metadata["message_ts"]
         self.approvers_ts = metadata["message_ts"]
         self.inputs = metadata["inputs"]
@@ -333,7 +333,7 @@ class SlackProvision:
             "response_url": self.response_url,
             "requesters_channel": self.requesters_channel,
             "token": self.token,
-            "ts": self.ts,
+            "requesters_ts": self.requesters_ts,
             "modifiables_fields": self.modifiables_fields,
             "requester": self.requester,
             "approvers_channel": self.approvers_channel,
