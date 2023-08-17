@@ -37,6 +37,7 @@ class SlackProvision:
         elif self.is_callback_view(callback_id="edit_view_modal"):
             self.channel_id = None
             self.reason = None
+            logger.info(self.payload)
             self.get_private_metadata()
             self.action_id = "Modified"
             self.get_modified_fields()
