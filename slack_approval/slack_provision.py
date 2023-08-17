@@ -25,6 +25,7 @@ class SlackProvision:
         self.data = request.get_data()
         self.headers = request.headers
         self.payload = json.loads(request.form["payload"])
+        logger.info(self.payload)
         # Comes from the reject response modal view (data comes in private metadata)
         if self.is_callback_view(callback_id="reject_reason_modal"):
             # Some vars need to be defined so IDE dont complain
@@ -121,9 +122,9 @@ class SlackProvision:
             response = slack_web_client.chat_update(
                 channel=self.approvers_channel,
                 ts=self.ts,
-                #blocks=blocks,
+                blocks=blocks,
                 as_user=True,
-                text="Hola"
+                text=""
             )
             logger.info(response.status_code)
         except errors.SlackApiError as e:
@@ -149,8 +150,8 @@ class SlackProvision:
             response = slack_web_client.chat_update(
                 channel=self.requesters_channel,
                 ts=self.ts,
-                #blocks=blocks,
-                text="Hola"
+                blocks=blocks,
+                text=""
             )
         except errors.SlackApiError as e:
             self.exception = e
