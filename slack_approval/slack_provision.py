@@ -166,7 +166,7 @@ class SlackProvision:
             )
         )
         blocks.extend(get_buttons_blocks(value=json.dumps(values)))
-        self.send_message_approver(blocks)
+        #self.send_message_approver(blocks)
 
     def send_status_message(self, status):
         hide = self.inputs.get("hide")
