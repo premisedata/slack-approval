@@ -149,7 +149,8 @@ class SlackProvision:
             response = slack_web_client.chat_update(
                 channel=self.requesters_channel,
                 ts=self.ts,
-                blocks=blocks,
+                #blocks=blocks,
+                text="Hola"
             )
         except errors.SlackApiError as e:
             self.exception = e
