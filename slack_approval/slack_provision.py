@@ -52,7 +52,7 @@ class SlackProvision:
         self.user = self.parse_user()
 
         self.name = self.inputs["provision_class"]
-        self.requesters_ts = self.inputs.pop("ts")
+        self.requesters_ts = self.inputs.pop("requesters_ts")
         self.approvers_ts = self.payload["container"]["message_ts"]
         self.requesters_channel = self.inputs.pop("requesters_channel")
         self.approvers_channel = self.inputs.pop("approvers_channel", None)
@@ -276,7 +276,7 @@ class SlackProvision:
     def get_private_metadata(self):
         metadata = json.loads(self.payload["view"]["private_metadata"])
         self.channel_id = metadata["channel_id"]
-        self.requesters_ts = metadata["reuqesters_ts"]
+        self.requesters_ts = metadata["requesters_ts"]
         self.message_ts = metadata["message_ts"]
         self.approvers_ts = metadata["message_ts"]
         self.inputs = metadata["inputs"]

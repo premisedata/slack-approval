@@ -58,7 +58,7 @@ class SlackRequest:
                 ],
             )
             # Save timestamp and requesters channel to be updated after provision
-            self.value["ts"] = response.get("ts")
+            self.value["requesters_ts"] = response.get("ts")
             self.value["requesters_channel"] = self.requesters_channel
             self.value["approvers_channel"] = self.approvers_channel
         except errors.SlackApiError as e:
