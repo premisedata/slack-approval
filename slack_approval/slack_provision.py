@@ -381,12 +381,13 @@ class SlackProvision:
     def get_modified_fields(self):
         available_blocks = self.payload["view"]["state"]["values"]
         blocks = {block_name.replace("block_id_", ""): block_values for block_name, block_values in available_blocks.items() if "block_id_" in block_name}
+        blocks = {block_name: block_values for block_name, block_values in
+                  blocks.items() if if f"action_id_{block_name}" in block_values}
         for block_name, block_values in  blocks:
-            if f"action_id_{block_name}" in block_values:
-                actual_value = self.inputs[block_name]
-                new_value = block_values[f"action_id_{block_name}"][
-                    "value"
-                ]
-                if actual_value != new_value:
-                    self.inputs["modified"] = True
-                    self.inputs[block_name] = new_value
+            actual_value = self.inputs[block_name]
+            new_value = block_values[f"action_id_{block_name}"][
+                "value"
+            ]
+            if actual_value != new_value:
+                self.inputs["modified"] = True
+                self.inputs[block_name] = new_value
