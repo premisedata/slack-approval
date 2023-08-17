@@ -325,7 +325,7 @@ class SlackProvision:
 
         private_metadata = {
             "channel_id": self.payload["channel"]["id"],
-            "approvers_ts": self.payload["message"]["ts"],
+            "approvers_ts": self.payload["container"]["message_ts"],
             "requesters_ts": self.requesters_ts,
             "name": self.inputs["provision_class"],
             "inputs": self.inputs,
