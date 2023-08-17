@@ -54,7 +54,7 @@ class SlackProvision:
 
         self.name = self.inputs["provision_class"]
         self.ts = self.inputs.pop("ts")
-        self.ts_2 = self.payload["container"]["message_ts"]
+        self.approvers_ts = self.payload["container"]["message_ts"]
         self.requesters_channel = self.inputs.pop("requesters_channel")
         self.approvers_channel = self.inputs.pop("approvers_channel", None)
         self.requester = self.inputs.get("requester", "")
@@ -118,31 +118,26 @@ class SlackProvision:
 
     def send_message_approver(self, blocks):
         try:
+            hide = self.inputs.get("hide")
+            if hide:
+                for field in hide:
+                    self.inputs.pop(field, None)
+                self.inputs.pop("hide")
+
             # Message to requester
             slack_web_client = WebClient(self.token)
             response = slack_web_client.chat_update(
                 channel=self.approvers_channel,
-                ts=self.ts_2,
+                ts=self.approvers_ts,
                 blocks=blocks,
                 as_user=True,
-                text=""
+                text="fallback"
             )
             logger.info(response.status_code)
         except errors.SlackApiError as e:
             self.exception = e
             logger.error(e)
-        # hide = self.inputs.get("hide")
-        # if hide:
-        #     for field in hide:
-        #         self.inputs.pop(field, None)
-        #     self.inputs.pop("hide")
-        # try:
-        #     # Message to approver
-        #     slack_client = WebhookClient(self.response_url)
-        #     response = slack_client.send(text="fallback", blocks=blocks)
-        # except errors.SlackApiError as e:
-        #     self.exception = e
-        #     logger.error(e)
+
 
     def send_message_requester(self, blocks):
         try:
@@ -152,7 +147,7 @@ class SlackProvision:
                 channel=self.requesters_channel,
                 ts=self.ts,
                 blocks=blocks,
-                text=""
+                text="fallback"
             )
         except errors.SlackApiError as e:
             self.exception = e
