@@ -203,7 +203,6 @@ class SlackProvision:
             logger.error(e)
 
     def open_reject_reason_view(self):
-        logger.info(self.payload)
         private_metadata = {
             "channel_id": self.payload["channel"]["id"],
             "approvers_ts": self.payload["message"]["ts"],
@@ -322,6 +321,8 @@ class SlackProvision:
             logger.error(e)
 
     def open_edit_view(self):
+        logger.info(self.payload)
+
         private_metadata = {
             "channel_id": self.payload["channel"]["id"],
             "approvers_ts": self.payload["message"]["ts"],
@@ -332,7 +333,6 @@ class SlackProvision:
             "response_url": self.response_url,
             "requesters_channel": self.requesters_channel,
             "token": self.token,
-            "requesters_ts": self.requesters_ts,
             "modifiables_fields": self.modifiables_fields,
             "requester": self.requester,
             "approvers_channel": self.approvers_channel,
