@@ -54,6 +54,7 @@ class SlackProvision:
 
         self.name = self.inputs["provision_class"]
         self.ts = self.inputs.pop("ts")
+        self.ts_2 = self.payload["container"]["message_ts"]
         self.requesters_channel = self.inputs.pop("requesters_channel")
         self.approvers_channel = self.inputs.pop("approvers_channel", None)
         self.requester = self.inputs.get("requester", "")
@@ -121,7 +122,7 @@ class SlackProvision:
             slack_web_client = WebClient(self.token)
             response = slack_web_client.chat_update(
                 channel=self.approvers_channel,
-                ts=self.ts,
+                ts=self.ts_2,
                 blocks=blocks,
                 as_user=True,
                 text=""
