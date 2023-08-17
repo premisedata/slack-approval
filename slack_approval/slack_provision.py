@@ -121,9 +121,9 @@ class SlackProvision:
             response = slack_web_client.chat_update(
                 channel=self.approvers_channel,
                 ts=self.ts,
-                text="fallback",
                 #blocks=blocks,
                 as_user=True,
+                text="Hola"
             )
             logger.info(response.status_code)
         except errors.SlackApiError as e:
@@ -149,7 +149,6 @@ class SlackProvision:
             response = slack_web_client.chat_update(
                 channel=self.requesters_channel,
                 ts=self.ts,
-                text="fallback",
                 blocks=blocks,
             )
         except errors.SlackApiError as e:
