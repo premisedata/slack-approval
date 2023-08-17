@@ -20,7 +20,6 @@ logger.setLevel(logging.DEBUG)
 class SlackProvision:
     def __init__(self, request):
         self.exception = None
-        self.message_ts = None
         self.token = os.environ.get("SLACK_BOT_TOKEN")
         self.data = request.get_data()
         self.headers = request.headers
@@ -29,7 +28,6 @@ class SlackProvision:
         if self.is_callback_view(callback_id="reject_reason_modal"):
             self.channel_id = None
             self.reason = None
-            logger.info(self.payload)
             self.get_private_metadata()
             self.action_id = "Reject Response"
             self.reason = self.payload["view"]["state"]["values"]["reason_block"][
@@ -97,7 +95,7 @@ class SlackProvision:
                 message = f"Reason for rejection: {self.reason}"
                 # Message to approver same request message thread
                 self.send_message_to_thread(
-                    message=message, thread_ts=self.message_ts, channel=self.channel_id
+                    message=message, thread_ts=self.approvers_ts, channel=self.channel_id
                 )
                 self.send_message_to_thread(
                     message=message,
@@ -207,7 +205,7 @@ class SlackProvision:
     def open_reject_reason_view(self):
         private_metadata = {
             "channel_id": self.payload["channel"]["id"],
-            "message_ts": self.payload["message"]["ts"],
+            "approvers_ts": self.payload["message"]["ts"],
             "name": self.inputs["provision_class"],
             "inputs": self.inputs,
             "user": self.user,
@@ -277,7 +275,6 @@ class SlackProvision:
         metadata = json.loads(self.payload["view"]["private_metadata"])
         self.channel_id = metadata["channel_id"]
         self.requesters_ts = metadata["requesters_ts"]
-        self.message_ts = metadata["message_ts"]
         self.approvers_ts = metadata["message_ts"]
         self.inputs = metadata["inputs"]
         self.name = self.inputs["provision_class"]
@@ -326,7 +323,8 @@ class SlackProvision:
     def open_edit_view(self):
         private_metadata = {
             "channel_id": self.payload["channel"]["id"],
-            "message_ts": self.payload["message"]["ts"],
+            "approvers_ts": self.payload["message"]["ts"],
+            "requesters_ts": self.requesters_ts,
             "name": self.inputs["provision_class"],
             "inputs": self.inputs,
             "user": self.user,
