@@ -122,9 +122,10 @@ class SlackProvision:
                 channel=self.approvers_channel,
                 ts=self.ts,
                 text="fallback",
-                blocks=blocks,
-                as_user=True
+                #blocks=blocks,
+                as_user=True,
             )
+            logger.info(response.status_code)
         except errors.SlackApiError as e:
             self.exception = e
             logger.error(e)
