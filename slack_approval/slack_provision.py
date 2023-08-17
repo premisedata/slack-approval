@@ -25,7 +25,6 @@ class SlackProvision:
         self.data = request.get_data()
         self.headers = request.headers
         self.payload = json.loads(request.form["payload"])
-        logger.info(self.payload)
         # Comes from the reject response modal view (data comes in private metadata)
         if self.is_callback_view(callback_id="reject_reason_modal"):
             # Some vars need to be defined so IDE dont complain
@@ -279,6 +278,7 @@ class SlackProvision:
         self.channel_id = metadata["channel_id"]
         self.ts = metadata["ts"]
         self.message_ts = metadata["message_ts"]
+        self.approvers_ts = metadata["message_ts"]
         self.inputs = metadata["inputs"]
         self.name = self.inputs["provision_class"]
         self.user = metadata["user"]
