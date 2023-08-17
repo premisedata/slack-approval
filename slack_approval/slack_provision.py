@@ -275,7 +275,7 @@ class SlackProvision:
         metadata = json.loads(self.payload["view"]["private_metadata"])
         self.channel_id = metadata["channel_id"]
         self.requesters_ts = metadata["requesters_ts"]
-        self.approvers_ts = metadata["message_ts"]
+        self.approvers_ts = metadata["approvers_ts"]
         self.inputs = metadata["inputs"]
         self.name = self.inputs["provision_class"]
         self.user = metadata["user"]
