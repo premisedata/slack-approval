@@ -175,6 +175,8 @@ class SlackProvision:
         self.inputs["requesters_ts"] = self.requesters_ts
         self.inputs["requesters_channel"] = self.requesters_channel
         self.inputs["approvers_channel"] = self.approvers_channel
+        self.inputs["modifiables_fields"] = ";".join(list(self.modifiables_fields.keys()))
+
         values = self.inputs.copy()
         blocks.extend(get_buttons_blocks(value=json.dumps(values)))
         self.send_message_approver(blocks)
@@ -325,6 +327,7 @@ class SlackProvision:
 
     def open_edit_view(self):
         logger.info(self.payload)
+        self.inputs["modifiables_fields"] = ";".join(list(self.modifiables_fields.keys()))
         private_metadata = {
             "channel_id": self.payload["channel"]["id"],
             "approvers_ts": self.payload["message"]["ts"],
@@ -383,7 +386,6 @@ class SlackProvision:
         return blocks
 
     def get_modifiable_fields(self):
-        logger.info(getattr(self, "modifiables_fields", "None"))
         modifiables_fields_names = self.inputs.pop("modifiables_fields","")
         fields = modifiables_fields_names.split(";")
         modifiables_fields = {}
