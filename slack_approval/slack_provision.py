@@ -322,20 +322,18 @@ class SlackProvision:
 
     def open_edit_view(self):
         logger.info(self.payload)
-
         private_metadata = {
             "channel_id": self.payload["channel"]["id"],
             "approvers_ts": self.payload["message"]["ts"],
-            "requesters_ts": self.requesters_ts,
             "name": self.inputs["provision_class"],
             "inputs": self.inputs,
             "user": self.user,
             "response_url": self.response_url,
             "requesters_channel": self.requesters_channel,
             "token": self.token,
-            "modifiables_fields": self.modifiables_fields,
-            "requester": self.requester,
+            "requesters_ts": self.requesters_ts,
             "approvers_channel": self.approvers_channel,
+            "requester": self.requester,
             "prevent_self_approval": self.prevent_self_approval,
         }
         try:
