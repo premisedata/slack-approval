@@ -157,23 +157,25 @@ class SlackProvision:
             for field in hide:
                 self.inputs.pop(field, None)
             self.inputs.pop("hide")
-        blocks = []
-        blocks.extend(get_header_block(name=self.name))
         inputs = self.inputs.copy()
         inputs.pop("ts", None)
         inputs.pop("requesters_channel", None)
         inputs.pop("approvers_channel", None)
-        blocks.extend(get_inputs_blocks(inputs=self.inputs))
         self.inputs["requesters_ts"] = self.requesters_ts
         self.inputs["requesters_channel"] = self.requesters_channel
         self.inputs["approvers_channel"] = self.approvers_channel
         values = self.inputs
+        blocks = []
+        blocks.extend(get_header_block(name=self.name))
+        blocks.extend(get_inputs_blocks(self.inputs))
+        blocks.extend(get_status_block(status="Pending. Modified ", user=self.user))
         self.send_message_requester(
             blocks
-            + self.get_status_blocks(
-                status=f"Pending{' modified' if self.inputs.get('modified', False) else ''}"
-            )
         )
+
+        blocks = []
+        blocks.extend(get_header_block(name=self.name))
+        blocks.extend(get_inputs_blocks(self.inputs))
         blocks.extend(get_buttons_blocks(value=json.dumps(values)))
         self.send_message_approver(blocks)
 
