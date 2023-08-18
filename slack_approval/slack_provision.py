@@ -158,7 +158,6 @@ class SlackProvision:
                 self.inputs.pop(field, None)
             self.inputs.pop("hide")
         inputs = self.inputs.copy()
-        inputs.pop("ts", None)
         inputs.pop("requesters_channel", None)
         inputs.pop("approvers_channel", None)
         inputs.pop("modifiables_fields", None)
@@ -221,6 +220,7 @@ class SlackProvision:
             "approvers_channel": self.approvers_channel,
             "requester": self.requester,
             "prevent_self_approval": self.prevent_self_approval,
+            "modifiables_fields": self.modifiables_fields
         }
         try:
             client = WebClient(self.token)
