@@ -340,6 +340,7 @@ class SlackProvision:
                     }
                     blocks.append(field)
                 blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "Modifiable fields"}})
+                continue
             field = {
                 "type": "input",
                 "block_id": f"block_id_{modifiable_field_name}",
