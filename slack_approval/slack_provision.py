@@ -161,9 +161,9 @@ class SlackProvision:
         inputs.pop("ts", None)
         inputs.pop("requesters_channel", None)
         inputs.pop("approvers_channel", None)
-        self.inputs["requesters_ts"] = self.requesters_ts
-        self.inputs["requesters_channel"] = self.requesters_channel
-        self.inputs["approvers_channel"] = self.approvers_channel
+        # self.inputs["requesters_ts"] = self.requesters_ts
+        # self.inputs["requesters_channel"] = self.requesters_channel
+        # self.inputs["approvers_channel"] = self.approvers_channel
         values = self.inputs
         blocks = []
         blocks.extend(get_header_block(name=self.name))
