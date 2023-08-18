@@ -319,6 +319,8 @@ class SlackProvision:
             modifiable_field_name,
             modifiable_field_value,
         ) in self.modifiables_fields.items():
+            if isinstance(modifiable_field_value, list):
+                continue
             field = {
                 "type": "input",
                 "block_id": f"block_id_{modifiable_field_name}",
