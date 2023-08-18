@@ -161,6 +161,7 @@ class SlackProvision:
         inputs.pop("ts", None)
         inputs.pop("requesters_channel", None)
         inputs.pop("approvers_channel", None)
+        inputs.pop("modifiables_fields", None)
         blocks = []
         blocks.extend(get_header_block(name=self.name))
         blocks.extend(get_inputs_blocks(self.inputs))
