@@ -169,7 +169,7 @@ class SlackProvision:
             blocks
         )
 
-        blocks = []
+        blocks = []z
         blocks.extend(get_header_block(name=self.name))
         blocks.extend(get_inputs_blocks(self.inputs))
         self.inputs["requesters_ts"] = self.requesters_ts
@@ -383,8 +383,7 @@ class SlackProvision:
         return blocks
 
     def get_modifiable_fields(self):
-        if getattr(self, "modifiables_fields", None) is not None:
-            return self.modifiables_fields
+        logger.info(getattr(self, "modifiables_fields", "None"))
         modifiables_fields_names = self.inputs.pop("modifiables_fields","")
         fields = modifiables_fields_names.split(";")
         modifiables_fields = {}
