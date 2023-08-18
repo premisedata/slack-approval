@@ -207,46 +207,12 @@ class SlackProvision:
             logger.error(e)
 
     def open_reject_reason_view(self):
-        private_metadata = {
-            "channel_id": self.payload["channel"]["id"],
-            "approvers_ts": self.payload["message"]["ts"],
-            "name": self.inputs["provision_class"],
-            "inputs": self.inputs,
-            "user": self.user,
-            "response_url": self.response_url,
-            "requesters_channel": self.requesters_channel,
-            "token": self.token,
-            "requesters_ts": self.requesters_ts,
-            "approvers_channel": self.approvers_channel,
-            "requester": self.requester,
-            "prevent_self_approval": self.prevent_self_approval,
-            "modifiables_fields": self.modifiables_fields
-        }
+        private_metadata = self.construct_private_metadata()
         try:
             client = WebClient(self.token)
             client.views_open(
                 trigger_id=self.payload["trigger_id"],
-                view={
-                    "type": "modal",
-                    "callback_id": "reject_reason_modal",
-                    "private_metadata": json.dumps(private_metadata),
-                    "title": {"type": "plain_text", "text": "Reject Reason"},
-                    "blocks": [
-                        {
-                            "type": "input",
-                            "block_id": "reason_block",
-                            "label": {
-                                "type": "plain_text",
-                                "text": "Please provide a reason for rejection:",
-                            },
-                            "element": {
-                                "type": "plain_text_input",
-                                "action_id": "reject_reason_input",
-                            },
-                        }
-                    ],
-                    "submit": {"type": "plain_text", "text": "Submit"},
-                },
+                view=self.construct_reason_modal(private_metadata=json.dumps(private_metadata)),
             )
         except errors.SlackApiError as e:
             self.exception = e
@@ -325,11 +291,8 @@ class SlackProvision:
             )
         except errors.SlackApiError as e:
             logger.error(e)
-
-    def open_edit_view(self):
-        logger.info(self.payload)
-        self.inputs["modifiables_fields"] = ";".join(list(self.modifiables_fields.keys()))
-        private_metadata = {
+    def construct_private_metadata(self):
+        return {
             "channel_id": self.payload["channel"]["id"],
             "approvers_ts": self.payload["message"]["ts"],
             "name": self.inputs["provision_class"],
@@ -344,6 +307,11 @@ class SlackProvision:
             "prevent_self_approval": self.prevent_self_approval,
             "modifiables_fields": self.modifiables_fields
         }
+    def open_edit_view(self):
+        logger.info(self.payload)
+        self.inputs["modifiables_fields"] = ";".join(list(self.modifiables_fields.keys()))
+        private_metadata = self.construct_private_metadata()
+
         try:
             modal_view = {
                 "type": "modal",
@@ -408,3 +376,26 @@ class SlackProvision:
             if actual_value != new_value:
                 self.inputs["modified"] = True
                 self.inputs[block_name] = new_value
+
+    def construct_reason_modal(self, private_metadata):
+        return {
+            "type": "modal",
+            "callback_id": "reject_reason_modal",
+            "private_metadata": private_metadata,
+            "title": {"type": "plain_text", "text": "Reject Reason"},
+            "blocks": [
+                {
+                    "type": "input",
+                    "block_id": "reason_block",
+                    "label": {
+                        "type": "plain_text",
+                        "text": "Please provide a reason for rejection:",
+                    },
+                    "element": {
+                        "type": "plain_text_input",
+                        "action_id": "reject_reason_input",
+                    },
+                }
+            ],
+            "submit": {"type": "plain_text", "text": "Submit"},
+        }
