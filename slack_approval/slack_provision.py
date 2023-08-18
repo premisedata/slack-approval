@@ -288,6 +288,7 @@ class SlackProvision:
         self.exception = None
         self.requester = metadata["requester"]
         self.prevent_self_approval = metadata["prevent_self_approval"]
+        self.modifiables_fields = metadata["modifiables_fields"]
 
     def get_status_blocks(self, status):
         blocks = []
@@ -337,6 +338,7 @@ class SlackProvision:
             "approvers_channel": self.approvers_channel,
             "requester": self.requester,
             "prevent_self_approval": self.prevent_self_approval,
+            "modifiables_fields": self.modifiables_fields
         }
         try:
             modal_view = {
@@ -381,7 +383,7 @@ class SlackProvision:
         return blocks
 
     def get_modifiable_fields(self):
-        modifiables_fields_names = self.inputs.get("modifiables_fields", "")
+        modifiables_fields_names = self.inputs.pop("modifiables_fields", "")
         fields = modifiables_fields_names.split(";")
         modifiables_fields = {}
         for field in fields:
