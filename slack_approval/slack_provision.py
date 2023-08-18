@@ -339,7 +339,7 @@ class SlackProvision:
                 #     "optional": True,
                 # }
                 field = {
-                    "type": "input",
+                    "type": "actions",
                     "block_id": f"block_id_{modifiable_field_name}",
                     "label": {"type": "plain_text", "text": modifiable_field_name},
                     "elements": elements,
@@ -359,23 +359,23 @@ class SlackProvision:
                 blocks.append(field)
                 blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "Modifiable fields"}})
                 continue
-            field = {
-                "type": "input",
-                "block_id": f"block_id_{modifiable_field_name}",
-                "label": {"type": "plain_text", "text": modifiable_field_name},
-                "element": {
-                    "type": "plain_text_input",
-                    "action_id": f"action_id_{modifiable_field_name}",
-                    "placeholder": {
-                        "type": "plain_text",
-                        "text": modifiable_field_value,
-                    },
-                    "initial_value": modifiable_field_value,
-                    "multiline": False,
-                },
-                "optional": True,
-            }
-            blocks.append(field)
+            # field = {
+            #     "type": "input",
+            #     "block_id": f"block_id_{modifiable_field_name}",
+            #     "label": {"type": "plain_text", "text": modifiable_field_name},
+            #     "element": {
+            #         "type": "plain_text_input",
+            #         "action_id": f"action_id_{modifiable_field_name}",
+            #         "placeholder": {
+            #             "type": "plain_text",
+            #             "text": modifiable_field_value,
+            #         },
+            #         "initial_value": modifiable_field_value,
+            #         "multiline": False,
+            #     },
+            #     "optional": True,
+            # }
+            # blocks.append(field)
         return blocks
 
     def get_modifiable_fields(self):
