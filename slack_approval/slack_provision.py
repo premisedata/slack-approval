@@ -383,7 +383,7 @@ class SlackProvision:
         return blocks
 
     def get_modifiable_fields(self):
-        modifiables_fields_names = self.inputs.pop("modifiables_fields", "")
+        modifiables_fields_names = self.modifiables_fields
         fields = modifiables_fields_names.split(";")
         modifiables_fields = {}
         for field in fields:
