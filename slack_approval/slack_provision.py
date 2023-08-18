@@ -37,7 +37,7 @@ class SlackProvision:
         elif self.is_callback_view(callback_id="edit_view_modal"):
             self.action_id = "Modified"
             self.get_private_metadata()
-            self.get_modified_fields()
+            self.get_modifications()
             return
 
         self.user_payload = self.payload["user"]
@@ -62,21 +62,6 @@ class SlackProvision:
         if not self.is_allowed():
             self.action_id = "Not allowed"
 
-    def is_valid_signature(self, signing_secret):
-        """Validates the request from the Slack integration"""
-        timestamp = self.headers["x-slack-request-timestamp"]
-        signature = self.headers["x-slack-signature"]
-        verifier = SignatureVerifier(signing_secret)
-        return verifier.is_valid(self.data, timestamp, signature)
-
-    @staticmethod
-    def approved():
-        logger.info("request approved")
-
-    @staticmethod
-    def rejected():
-        logger.info("request rejected")
-
     def __call__(self):
         try:
             if self.action_id == "Approved":
@@ -93,7 +78,9 @@ class SlackProvision:
                 message = f"Reason for rejection: {self.reason}"
                 # Message to approver same request message thread
                 self.send_message_to_thread(
-                    message=message, thread_ts=self.approvers_ts, channel=self.channel_id
+                    message=message,
+                    thread_ts=self.approvers_ts,
+                    channel=self.channel_id,
                 )
                 self.send_message_to_thread(
                     message=message,
@@ -112,6 +99,21 @@ class SlackProvision:
             logger.error(e, stack_info=True, exc_info=True)
         self.send_status_message(status=self.action_id)
 
+    def is_valid_signature(self, signing_secret):
+        """Validates the request from the Slack integration"""
+        timestamp = self.headers["x-slack-request-timestamp"]
+        signature = self.headers["x-slack-signature"]
+        verifier = SignatureVerifier(signing_secret)
+        return verifier.is_valid(self.data, timestamp, signature)
+
+    @staticmethod
+    def approved():
+        logger.info("request approved")
+
+    @staticmethod
+    def rejected():
+        logger.info("request rejected")
+
     def send_message_approver(self, blocks):
         try:
             hide = self.inputs.get("hide")
@@ -127,12 +129,11 @@ class SlackProvision:
                 ts=self.approvers_ts,
                 blocks=blocks,
                 as_user=True,
-                text="fallback"
+                text="fallback",
             )
         except errors.SlackApiError as e:
             self.exception = e
             logger.error(e, stack_info=True, exc_info=True)
-
 
     def send_message_requester(self, blocks):
         try:
@@ -142,7 +143,29 @@ class SlackProvision:
                 channel=self.requesters_channel,
                 ts=self.requesters_ts,
                 blocks=blocks,
-                text="fallback"
+                text="fallback",
+            )
+        except errors.SlackApiError as e:
+            self.exception = e
+            logger.error(e, stack_info=True, exc_info=True)
+
+    def send_status_message(self, status):
+        hide = self.inputs.get("hide")
+        if hide:
+            for field in hide:
+                self.inputs.pop(field, None)
+            self.inputs.pop("hide")
+        blocks = self.get_status_blocks(status)
+        self.send_message_approver(blocks)
+        self.send_message_requester(blocks)
+
+    def send_message_to_thread(self, message, thread_ts, channel):
+        try:
+            client = WebClient(self.token)
+            client.chat_postMessage(
+                channel=channel,
+                thread_ts=thread_ts,
+                text=message,
             )
         except errors.SlackApiError as e:
             self.exception = e
@@ -162,9 +185,7 @@ class SlackProvision:
         blocks.extend(get_header_block(name=self.name))
         blocks.extend(get_inputs_blocks(self.inputs))
         blocks.extend(get_status_block(status="Pending. Modified ", user=self.user))
-        self.send_message_requester(
-            blocks
-        )
+        self.send_message_requester(blocks)
 
         blocks = []
         blocks.extend(get_header_block(name=self.name))
@@ -178,16 +199,6 @@ class SlackProvision:
         blocks.extend(get_buttons_blocks(value=json.dumps(values)))
         self.send_message_approver(blocks)
 
-    def send_status_message(self, status):
-        hide = self.inputs.get("hide")
-        if hide:
-            for field in hide:
-                self.inputs.pop(field, None)
-            self.inputs.pop("hide")
-        blocks = self.get_status_blocks(status)
-        self.send_message_approver(blocks)
-        self.send_message_requester(blocks)
-
     def is_allowed(self):
         if not self.prevent_self_approval:
             return True
@@ -199,30 +210,6 @@ class SlackProvision:
                 return False
             else:
                 return True
-        except errors.SlackApiError as e:
-            self.exception = e
-            logger.error(e, stack_info=True, exc_info=True)
-
-    def open_reject_reason_view(self):
-        private_metadata = self.construct_private_metadata()
-        try:
-            client = WebClient(self.token)
-            client.views_open(
-                trigger_id=self.payload["trigger_id"],
-                view=self.construct_reason_modal(private_metadata=json.dumps(private_metadata)),
-            )
-        except errors.SlackApiError as e:
-            self.exception = e
-            logger.error(e, stack_info=True, exc_info=True)
-
-    def send_message_to_thread(self, message, thread_ts, channel):
-        try:
-            client = WebClient(self.token)
-            client.chat_postMessage(
-                channel=channel,
-                thread_ts=thread_ts,
-                text=message,
-            )
         except errors.SlackApiError as e:
             self.exception = e
             logger.error(e, stack_info=True, exc_info=True)
@@ -288,24 +275,25 @@ class SlackProvision:
             )
         except errors.SlackApiError as e:
             logger.error(e, stack_info=True, exc_info=True)
-    def construct_private_metadata(self):
-        return {
-            "channel_id": self.payload["channel"]["id"],
-            "approvers_ts": self.payload["message"]["ts"],
-            "name": self.inputs["provision_class"],
-            "inputs": self.inputs,
-            "user": self.user,
-            "response_url": self.response_url,
-            "requesters_channel": self.requesters_channel,
-            "token": self.token,
-            "requesters_ts": self.requesters_ts,
-            "approvers_channel": self.approvers_channel,
-            "requester": self.requester,
-            "prevent_self_approval": self.prevent_self_approval,
-            "modifiables_fields": self.modifiables_fields
-        }
+
+    def open_reject_reason_view(self):
+        private_metadata = self.construct_private_metadata()
+        try:
+            client = WebClient(self.token)
+            client.views_open(
+                trigger_id=self.payload["trigger_id"],
+                view=self.construct_reason_modal(
+                    private_metadata=json.dumps(private_metadata)
+                ),
+            )
+        except errors.SlackApiError as e:
+            self.exception = e
+            logger.error(e, stack_info=True, exc_info=True)
+
     def open_edit_view(self):
-        self.inputs["modifiables_fields"] = ";".join(list(self.modifiables_fields.keys()))
+        self.inputs["modifiables_fields"] = ";".join(
+            list(self.modifiables_fields.keys())
+        )
         private_metadata = self.construct_private_metadata()
 
         try:
@@ -351,7 +339,7 @@ class SlackProvision:
         return blocks
 
     def get_modifiable_fields(self):
-        modifiables_fields_names = self.inputs.pop("modifiables_fields","")
+        modifiables_fields_names = self.inputs.pop("modifiables_fields", "")
         fields = modifiables_fields_names.split(";")
         modifiables_fields = {}
         for field in fields:
@@ -359,21 +347,27 @@ class SlackProvision:
                 modifiables_fields[field] = self.inputs[field]
         return modifiables_fields
 
-    def get_modified_fields(self):
+    def get_modifications(self):
         available_blocks = self.payload["view"]["state"]["values"]
-        blocks = {block_name.replace("block_id_", ""): block_values for block_name, block_values in available_blocks.items() if "block_id_" in block_name}
-        blocks = {block_name: block_values for block_name, block_values in
-                  blocks.items() if f"action_id_{block_name}" in block_values}
+        blocks = {
+            block_name.replace("block_id_", ""): block_values
+            for block_name, block_values in available_blocks.items()
+            if "block_id_" in block_name
+        }
+        blocks = {
+            block_name: block_values
+            for block_name, block_values in blocks.items()
+            if f"action_id_{block_name}" in block_values
+        }
         for block_name, block_values in blocks.items():
             actual_value = self.inputs[block_name]
-            new_value = block_values[f"action_id_{block_name}"][
-                "value"
-            ]
+            new_value = block_values[f"action_id_{block_name}"]["value"]
             if actual_value != new_value:
                 self.inputs["modified"] = True
                 self.inputs[block_name] = new_value
 
-    def construct_reason_modal(self, private_metadata):
+    @staticmethod
+    def construct_reason_modal(private_metadata):
         return {
             "type": "modal",
             "callback_id": "reject_reason_modal",
@@ -394,4 +388,21 @@ class SlackProvision:
                 }
             ],
             "submit": {"type": "plain_text", "text": "Submit"},
+        }
+
+    def construct_private_metadata(self):
+        return {
+            "channel_id": self.payload["channel"]["id"],
+            "approvers_ts": self.payload["message"]["ts"],
+            "name": self.inputs["provision_class"],
+            "inputs": self.inputs,
+            "user": self.user,
+            "response_url": self.response_url,
+            "requesters_channel": self.requesters_channel,
+            "token": self.token,
+            "requesters_ts": self.requesters_ts,
+            "approvers_channel": self.approvers_channel,
+            "requester": self.requester,
+            "prevent_self_approval": self.prevent_self_approval,
+            "modifiables_fields": self.modifiables_fields,
         }
