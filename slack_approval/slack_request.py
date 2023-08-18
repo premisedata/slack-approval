@@ -62,14 +62,14 @@ class SlackRequest:
             self.value["requesters_channel"] = self.requesters_channel
             self.value["approvers_channel"] = self.approvers_channel
         except errors.SlackApiError as e:
-            logger.error(e)
+            logger.error(e, stack_info=True, exc_info=True)
         value = json.dumps(self.value)
 
         blocks.extend(get_buttons_blocks(value))
 
         # Send to approvers channel with `approve` and `reject` buttons
         try:
-            response = slack_web_client.chat_postMessage(
+            slack_web_client.chat_postMessage(
                 channel=self.approvers_channel, text="fallback", blocks=blocks
             )
         except errors.SlackApiError as e:

@@ -20,25 +20,23 @@ logger.setLevel(logging.DEBUG)
 class SlackProvision:
     def __init__(self, request):
         self.exception = None
+        self.channel_id = None
+        self.reason = None
         self.token = os.environ.get("SLACK_BOT_TOKEN")
         self.data = request.get_data()
         self.headers = request.headers
         self.payload = json.loads(request.form["payload"])
         # Comes from the reject response modal view (data comes in private metadata)
         if self.is_callback_view(callback_id="reject_reason_modal"):
-            self.channel_id = None
-            self.reason = None
-            self.get_private_metadata()
             self.action_id = "Reject Response"
+            self.get_private_metadata()
             self.reason = self.payload["view"]["state"]["values"]["reason_block"][
                 "reject_reason_input"
             ]["value"]
             return
         elif self.is_callback_view(callback_id="edit_view_modal"):
-            self.channel_id = None
-            self.reason = None
-            self.get_private_metadata()
             self.action_id = "Modified"
+            self.get_private_metadata()
             self.get_modified_fields()
             return
 
@@ -88,7 +86,7 @@ class SlackProvision:
                 return
             elif self.action_id == "Not allowed":
                 message = f"Same request/response user {self.user} not allowed. Prevent self approval is on."
-                self.open_dialog(title="Warning", message=message)
+                self.open_message_dialog(title="Warning", message=message)
                 return
             elif self.action_id == "Reject Response":
                 self.rejected()
@@ -131,17 +129,16 @@ class SlackProvision:
                 as_user=True,
                 text="fallback"
             )
-            logger.info(response.status_code)
         except errors.SlackApiError as e:
             self.exception = e
-            logger.error(e)
+            logger.error(e, stack_info=True, exc_info=True)
 
 
     def send_message_requester(self, blocks):
         try:
             # Message to requester
             slack_web_client = WebClient(self.token)
-            response = slack_web_client.chat_update(
+            slack_web_client.chat_update(
                 channel=self.requesters_channel,
                 ts=self.requesters_ts,
                 blocks=blocks,
@@ -149,7 +146,7 @@ class SlackProvision:
             )
         except errors.SlackApiError as e:
             self.exception = e
-            logger.error(e)
+            logger.error(e, stack_info=True, exc_info=True)
 
     def send_modified_message(self):
         hide = self.inputs.get("hide")
@@ -204,7 +201,7 @@ class SlackProvision:
                 return True
         except errors.SlackApiError as e:
             self.exception = e
-            logger.error(e)
+            logger.error(e, stack_info=True, exc_info=True)
 
     def open_reject_reason_view(self):
         private_metadata = self.construct_private_metadata()
@@ -216,7 +213,7 @@ class SlackProvision:
             )
         except errors.SlackApiError as e:
             self.exception = e
-            logger.error(e)
+            logger.error(e, stack_info=True, exc_info=True)
 
     def send_message_to_thread(self, message, thread_ts, channel):
         try:
@@ -228,7 +225,7 @@ class SlackProvision:
             )
         except errors.SlackApiError as e:
             self.exception = e
-            logger.error(e)
+            logger.error(e, stack_info=True, exc_info=True)
 
     def is_callback_view(self, callback_id):
         return (
@@ -269,7 +266,7 @@ class SlackProvision:
 
         return blocks
 
-    def open_dialog(self, title, message):
+    def open_message_dialog(self, title, message):
         try:
             client = WebClient(self.token)
             client.views_open(
@@ -290,7 +287,7 @@ class SlackProvision:
                 },
             )
         except errors.SlackApiError as e:
-            logger.error(e)
+            logger.error(e, stack_info=True, exc_info=True)
     def construct_private_metadata(self):
         return {
             "channel_id": self.payload["channel"]["id"],
@@ -308,7 +305,6 @@ class SlackProvision:
             "modifiables_fields": self.modifiables_fields
         }
     def open_edit_view(self):
-        logger.info(self.payload)
         self.inputs["modifiables_fields"] = ";".join(list(self.modifiables_fields.keys()))
         private_metadata = self.construct_private_metadata()
 
@@ -325,7 +321,7 @@ class SlackProvision:
             client.views_open(trigger_id=self.payload["trigger_id"], view=modal_view)
         except errors.SlackApiError as e:
             self.exception = e
-            logger.error(e)
+            logger.error(e, stack_info=True, exc_info=True)
 
     def construct_modifiable_fields_blocks(self):
         blocks = [
