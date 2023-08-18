@@ -169,7 +169,7 @@ class SlackProvision:
             blocks
         )
 
-        blocks = []z
+        blocks = []
         blocks.extend(get_header_block(name=self.name))
         blocks.extend(get_inputs_blocks(self.inputs))
         self.inputs["requesters_ts"] = self.requesters_ts
