@@ -320,62 +320,44 @@ class SlackProvision:
             modifiable_field_value,
         ) in self.modifiables_fields.items():
             if isinstance(modifiable_field_value, list):
-                elements = []
                 blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "Multi values"}})
-                # field = {
-                #     "type": "input",
-                #     "block_id": f"block_id_{modifiable_field_name}",
-                #     "label": {"type": "plain_text", "text": modifiable_field_name},
-                #     "element": {
-                #         "type": "plain_text_input",
-                #         "action_id": f"action_id_{modifiable_field_name}",
-                #         "placeholder": {
-                #             "type": "plain_text",
-                #             "text": value,
-                #         },
-                #         "initial_value": value,
-                #         "multiline": False,
-                #     },
-                #     "optional": True,
-                # }
-                field = {
-                    "type": "actions",
-                    "block_id": f"block_id_{modifiable_field_name}",
-                    "label": {"type": "plain_text", "text": modifiable_field_name},
-                    "elements": elements,
-                    "optional": True,
-                }
                 for value in modifiable_field_value:
-                    elements.append({
+                    field = {
+                        "type": "input",
+                        "block_id": f"block_id_{modifiable_field_name}_{value}",
+                        "label": {"type": "plain_text", "text": modifiable_field_name},
+                        "element": {
                             "type": "plain_text_input",
-                            "action_id": f"action_id_{value}",
+                            "action_id": f"action_id_{modifiable_field_name}_{value}",
                             "placeholder": {
                                 "type": "plain_text",
                                 "text": value,
                             },
                             "initial_value": value,
                             "multiline": False,
-                        })
-                blocks.append(field)
+                        },
+                        "optional": True,
+                    }
+                    blocks.append(field)
                 blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "Modifiable fields"}})
                 continue
-            # field = {
-            #     "type": "input",
-            #     "block_id": f"block_id_{modifiable_field_name}",
-            #     "label": {"type": "plain_text", "text": modifiable_field_name},
-            #     "element": {
-            #         "type": "plain_text_input",
-            #         "action_id": f"action_id_{modifiable_field_name}",
-            #         "placeholder": {
-            #             "type": "plain_text",
-            #             "text": modifiable_field_value,
-            #         },
-            #         "initial_value": modifiable_field_value,
-            #         "multiline": False,
-            #     },
-            #     "optional": True,
-            # }
-            # blocks.append(field)
+            field = {
+                "type": "input",
+                "block_id": f"block_id_{modifiable_field_name}",
+                "label": {"type": "plain_text", "text": modifiable_field_name},
+                "element": {
+                    "type": "plain_text_input",
+                    "action_id": f"action_id_{modifiable_field_name}",
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": modifiable_field_value,
+                    },
+                    "initial_value": modifiable_field_value,
+                    "multiline": False,
+                },
+                "optional": True,
+            }
+            blocks.append(field)
         return blocks
 
     def get_modifiable_fields(self):
