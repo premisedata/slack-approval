@@ -169,13 +169,13 @@ class SlackProvision:
             blocks
         )
 
-        self.inputs["requesters_ts"] = self.requesters_ts
-        self.inputs["requesters_channel"] = self.requesters_channel
-        self.inputs["approvers_channel"] = self.approvers_channel
-        values = self.inputs
         blocks = []
         blocks.extend(get_header_block(name=self.name))
         blocks.extend(get_inputs_blocks(self.inputs))
+        self.inputs["requesters_ts"] = self.requesters_ts
+        self.inputs["requesters_channel"] = self.requesters_channel
+        self.inputs["approvers_channel"] = self.approvers_channel
+        values = self.inputs.copy()
         blocks.extend(get_buttons_blocks(value=json.dumps(values)))
         self.send_message_approver(blocks)
 
