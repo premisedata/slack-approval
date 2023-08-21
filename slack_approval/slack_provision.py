@@ -23,6 +23,9 @@ class SlackProvision:
         self.exception = None
         self.channel_id = None
         self.reason = None
+        self.user_payload = None
+        self.user = None
+        self.user_id = None
         self.token = os.environ.get("SLACK_BOT_TOKEN")
         self.data = request.get_data()
         self.headers = request.headers
@@ -41,12 +44,11 @@ class SlackProvision:
             self.get_modifications()
             return
 
-        self.user_payload = self.payload["user"]
         self.action = self.payload["actions"][0]
         self.inputs = json.loads(self.action["value"])
         self.response_url = self.payload["response_url"]
         self.action_id = self.action["action_id"]
-        self.user = self.parse_user()
+        self.get_user_info()
 
         self.name = self.inputs["provision_class"]
         self.requesters_ts = self.inputs.pop("requesters_ts")
@@ -221,10 +223,13 @@ class SlackProvision:
                 and self.payload["view"].get("callback_id", "") == callback_id
         )
 
-    def parse_user(self):
-        return " ".join(
-            [s.capitalize() for s in self.payload["user"]["name"].split(".")]
+    def get_user_info(self):
+        self.user_payload = self.payload["user"]
+        self.user = " ".join(
+            [s.capitalize() for s in self.user_payload["name"].split(".")]
         )
+        logger.info(self.user_payload)
+        self.user_id = self.user_payload["id"]
 
     def get_private_metadata(self):
         metadata = json.loads(self.payload["view"]["private_metadata"])
