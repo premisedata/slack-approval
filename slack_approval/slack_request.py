@@ -17,7 +17,6 @@ class SlackRequest:
         self.value = self.inputs.copy()  # save inputs before hiding anything
         hide = self.inputs.get("hide")
         if hide:
-            logger.info(f"Hidden fields: {hide}")
             for field in hide:
                 self.inputs.pop(field, None)
             self.inputs.pop("hide")
@@ -35,7 +34,6 @@ class SlackRequest:
         if self.inputs.get("approvers_channel"):
             self.inputs.pop("approvers_channel")
 
-        logger.info(f"first inputs {self.inputs}")
 
     def send_request_message(self):
         slack_web_client = WebClient(self.token)
@@ -66,7 +64,6 @@ class SlackRequest:
         except errors.SlackApiError as e:
             logger.error(e, stack_info=True, exc_info=True)
         value = json.dumps(self.value)
-        logger.info(f"values inputs {value}")
 
         blocks.extend(get_buttons_blocks(value))
 
@@ -76,4 +73,4 @@ class SlackRequest:
                 channel=self.approvers_channel, text="fallback", blocks=blocks
             )
         except errors.SlackApiError as e:
-            logger.error(e)
+            logger.error(e, stack_info=True, exc_info=True)
