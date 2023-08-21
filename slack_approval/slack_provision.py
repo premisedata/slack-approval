@@ -77,7 +77,7 @@ class SlackProvision:
                 return
             elif self.action_id == "Reject Response":
                 self.rejected()
-                message = f"Reason for rejection: {self.reason}"
+                message = f"<@{self.user_id}> Reason for rejection: {self.reason}"
                 # Message to approver same request message thread
                 self.send_message_to_thread(
                     message=message,
