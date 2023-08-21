@@ -320,7 +320,6 @@ class SlackProvision:
             modifiable_field_value,
         ) in self.modifiables_fields.items():
             if isinstance(modifiable_field_value, list):
-                blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "Multi values"}})
                 for value in modifiable_field_value:
                     field = {
                         "type": "input",
@@ -339,7 +338,6 @@ class SlackProvision:
                         "optional": True,
                     }
                     blocks.append(field)
-                blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "Modifiable fields"}})
                 continue
             field = {
                 "type": "input",
