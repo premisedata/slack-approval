@@ -228,7 +228,6 @@ class SlackProvision:
         self.user = " ".join(
             [s.capitalize() for s in self.user_payload["name"].split(".")]
         )
-        logger.info(self.user_payload)
         self.user_id = self.user_payload["id"]
 
     def get_private_metadata(self):
@@ -238,7 +237,6 @@ class SlackProvision:
         self.approvers_ts = metadata["approvers_ts"]
         self.inputs = metadata["inputs"]
         self.name = self.inputs["provision_class"]
-        self.user = metadata["user"]
         self.response_url = metadata["response_url"]
         self.requesters_channel = metadata["requesters_channel"]
         self.approvers_channel = metadata["approvers_channel"]
@@ -247,6 +245,10 @@ class SlackProvision:
         self.requester = metadata["requester"]
         self.prevent_self_approval = metadata["prevent_self_approval"]
         self.modifiables_fields = metadata["modifiables_fields"]
+        self.user_payload = metadata["user_payload"]
+        self.user = metadata["user"]
+        self.user_payload = metadata["user_payload"]
+        self.user_id = metadata["user_id"]
 
     def get_status_blocks(self, status):
         blocks = []
@@ -445,7 +447,9 @@ class SlackProvision:
             "approvers_ts": self.payload["message"]["ts"],
             "name": self.inputs["provision_class"],
             "inputs": self.inputs,
+            "user_payload": self.user_payload,
             "user": self.user,
+            "user_id": self.user_id,
             "response_url": self.response_url,
             "requesters_channel": self.requesters_channel,
             "token": self.token,
