@@ -59,7 +59,7 @@ class SlackProvision:
             Backward compatibility: prevent_self_approval deactivated """
         self.prevent_self_approval = self.inputs.get("prevent_self_approval", False)
         self.inputs["modified"] = self.inputs.get("modified", False)
-
+        logger.info(f"prevent_self_approval {self.prevent_self_approval}")
         if not self.is_allowed():
             self.action_id = "Not allowed"
 
