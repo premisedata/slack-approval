@@ -1,6 +1,7 @@
 import json
 import os
 import logging
+import re
 
 from slack_sdk.signature import SignatureVerifier
 from slack_sdk import WebhookClient, WebClient, errors
@@ -216,9 +217,9 @@ class SlackProvision:
 
     def is_callback_view(self, callback_id):
         return (
-            self.payload.get("type", "") == "view_submission"
-            and self.payload.get("view", False)
-            and self.payload["view"].get("callback_id", "") == callback_id
+                self.payload.get("type", "") == "view_submission"
+                and self.payload.get("view", False)
+                and self.payload["view"].get("callback_id", "") == callback_id
         )
 
     def parse_user(self):
@@ -316,18 +317,19 @@ class SlackProvision:
             {"type": "section", "text": {"type": "mrkdwn", "text": "Modifiable fields"}}
         ]
         for (
-            modifiable_field_name,
-            modifiable_field_value,
+                modifiable_field_name,
+                modifiable_field_value,
         ) in self.modifiables_fields.items():
             if isinstance(modifiable_field_value, list):
+                item_number = 0
                 for value in modifiable_field_value:
                     field = {
                         "type": "input",
-                        "block_id": f"multivalue_block_id_{modifiable_field_name}_{value}",
+                        "block_id": f"multivalue_block_id_{modifiable_field_name}_{item_number}",
                         "label": {"type": "plain_text", "text": modifiable_field_name},
                         "element": {
                             "type": "plain_text_input",
-                            "action_id": f"multivalue_action_id_{modifiable_field_name}_{value}",
+                            "action_id": f"action_id_{modifiable_field_name}_{item_number}",
                             "placeholder": {
                                 "type": "plain_text",
                                 "text": value,
@@ -338,6 +340,7 @@ class SlackProvision:
                         "optional": True,
                     }
                     blocks.append(field)
+                    item_number += 1
                 continue
             field = {
                 "type": "input",
@@ -372,7 +375,7 @@ class SlackProvision:
         blocks = {
             block_name.replace("block_id_", ""): block_values
             for block_name, block_values in available_blocks.items()
-            if "block_id_" in block_name
+            if "block_id_" in block_name and not "multivalue_block_id_" in block_name
         }
         blocks = {
             block_name: block_values
@@ -393,19 +396,18 @@ class SlackProvision:
         }
 
         for block_name, block_values in blocks.items():
-            self.inputs[block_name] = []
+            self.inputs[re.sub(r"_\d+$", '', block_name)] = []
 
         blocks = {
             block_name: block_values
             for block_name, block_values in blocks.items()
-            if f"multivalue_action_id_{block_name}" in block_values
+            if f"action_id_{block_name}" in block_values
         }
 
         for block_name, block_values in blocks.items():
-            new_value = block_values[f"multivalue_action_id_{block_name}"]["value"]
+            new_value = block_values[f"action_id_{block_name}"]["value"]
             self.inputs["modified"] = True
-            self.inputs[block_name].append(new_value)
-
+            self.inputs[re.sub(r"_\d+$", '', block_name)].append(new_value)
 
     @staticmethod
     def construct_reason_modal(private_metadata):
