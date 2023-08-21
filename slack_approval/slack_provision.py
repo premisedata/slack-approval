@@ -323,11 +323,11 @@ class SlackProvision:
                 for value in modifiable_field_value:
                     field = {
                         "type": "input",
-                        "block_id": f"block_id_{modifiable_field_name}_{value}",
+                        "block_id": f"block_id_{modifiable_field_name}",
                         "label": {"type": "plain_text", "text": modifiable_field_name},
                         "element": {
                             "type": "plain_text_input",
-                            "action_id": f"action_id_{modifiable_field_name}_{value}",
+                            "action_id": f"action_id_{modifiable_field_name}",
                             "placeholder": {
                                 "type": "plain_text",
                                 "text": value,
