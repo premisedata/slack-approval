@@ -65,8 +65,10 @@ class SlackProvision:
             self.action_id = "Not allowed"
 
     def __call__(self):
+        mention_requester = False
         try:
             if self.action_id == "Approved":
+                mention_requester = True
                 self.approved()
             elif self.action_id == "Rejected":
                 self.open_reject_reason_view()
@@ -77,17 +79,19 @@ class SlackProvision:
                 return
             elif self.action_id == "Reject Response":
                 self.rejected()
-                message = f"<@{self.user_id}> reason for rejection: {self.reason}"
+                message = f"reason for rejection: {self.reason}"
                 # Message to approver same request message thread
                 self.send_message_to_thread(
                     message=message,
                     thread_ts=self.approvers_ts,
                     channel=self.channel_id,
+                    mention_requester=True
                 )
                 self.send_message_to_thread(
                     message=message,
                     thread_ts=self.requesters_ts,
                     channel=self.requesters_channel,
+                    mention_requester=True
                 )
             elif self.action_id == "Edit":
                 self.open_edit_view()
@@ -99,7 +103,7 @@ class SlackProvision:
         except Exception as e:
             self.exception = e
             logger.error(e, stack_info=True, exc_info=True)
-        self.send_status_message(status=self.action_id)
+        self.send_status_message(status=self.action_id, mention_requester=mention_requester)
 
     def is_valid_signature(self, signing_secret):
         """Validates the request from the Slack integration"""
@@ -161,8 +165,10 @@ class SlackProvision:
         self.send_message_approver(blocks)
         self.send_message_requester(blocks)
 
-    def send_message_to_thread(self, message, thread_ts, channel):
+    def send_message_to_thread(self, message, thread_ts, channel, mention_requester=False):
         try:
+            if mention_requester:
+                message = f"<@{self.user_id}> {message}"
             client = WebClient(self.token)
             client.chat_postMessage(
                 channel=channel,
