@@ -323,11 +323,11 @@ class SlackProvision:
                 for value in modifiable_field_value:
                     field = {
                         "type": "input",
-                        "block_id": f"block_id_{modifiable_field_name}",
+                        "block_id": f"multivalue_block_id_{modifiable_field_name}_{value}",
                         "label": {"type": "plain_text", "text": modifiable_field_name},
                         "element": {
                             "type": "plain_text_input",
-                            "action_id": f"action_id_{modifiable_field_name}",
+                            "action_id": f"multivalue_action_id_{modifiable_field_name}_{value}",
                             "placeholder": {
                                 "type": "plain_text",
                                 "text": value,
@@ -385,6 +385,27 @@ class SlackProvision:
             if actual_value != new_value:
                 self.inputs["modified"] = True
                 self.inputs[block_name] = new_value
+
+        blocks = {
+            block_name.replace("multivalue_block_id_", ""): block_values
+            for block_name, block_values in available_blocks.items()
+            if "multivalue_block_id_" in block_name
+        }
+
+        for block_name, block_values in blocks.items():
+            self.inputs[block_name] = []
+
+        blocks = {
+            block_name: block_values
+            for block_name, block_values in blocks.items()
+            if f"multivalue_action_id_{block_name}" in block_values
+        }
+
+        for block_name, block_values in blocks.items():
+            new_value = block_values[f"multivalue_action_id_{block_name}"]["value"]
+            self.inputs["modified"] = True
+            self.inputs[block_name].append(new_value)
+
 
     @staticmethod
     def construct_reason_modal(private_metadata):
