@@ -77,7 +77,7 @@ class SlackProvision:
                 return
             elif self.action_id == "Reject Response":
                 self.rejected()
-                message = f"<@{self.user_id}> Reason for rejection: {self.reason}"
+                message = f"<@{self.user_id}> reason for rejection: {self.reason}"
                 # Message to approver same request message thread
                 self.send_message_to_thread(
                     message=message,
@@ -151,13 +151,13 @@ class SlackProvision:
             self.exception = e
             logger.error(e, stack_info=True, exc_info=True)
 
-    def send_status_message(self, status):
+    def send_status_message(self, status, mention_requester=False):
         hide = self.inputs.get("hide")
         if hide:
             for field in hide:
                 self.inputs.pop(field, None)
             self.inputs.pop("hide")
-        blocks = self.get_status_blocks(status)
+        blocks = self.get_message_status(status, mention_requester)
         self.send_message_approver(blocks)
         self.send_message_requester(blocks)
 
@@ -250,11 +250,11 @@ class SlackProvision:
         self.user_payload = metadata["user_payload"]
         self.user_id = metadata["user_id"]
 
-    def get_status_blocks(self, status):
+    def get_message_status(self, status, mention_requester=False):
         blocks = []
         blocks.extend(get_header_block(name=self.name))
         blocks.extend(get_inputs_blocks(self.inputs))
-        blocks.extend(get_status_block(status=status, user=self.user))
+        blocks.extend(get_status_block(status=status, user=self.user, mention_requester=mention_requester, user_id=self.user_id))
         if self.exception:
             blocks.extend(get_exception_block(self.exception))
 

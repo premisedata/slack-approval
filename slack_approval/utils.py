@@ -27,12 +27,13 @@ def get_inputs_blocks(inputs):
     return input_block
 
 
-def get_status_block(status, user):
+def get_status_block(status, user, mention_requester=False, user_id=None):
+    mention = f"<@{user_id}>" if mention_requester and user_id is not None else ""
     return [{
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"*Status: {status} by {user}*"
+                "text": f"{mention}*Status: {status} by {user}*"
             }
         }]
 
