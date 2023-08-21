@@ -33,7 +33,7 @@ def get_status_block(status, user, mention_requester=False, user_id=None):
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"{mention}*Status: {status} by {user}*"
+                "text": f"*Status: {status} by {user}* {mention}"
             }
         }]
 
