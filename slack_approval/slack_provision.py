@@ -348,8 +348,8 @@ class SlackProvision:
                     }
                     blocks.append(field)
                     continue
-                for value in modifiable_field_value:
-                    value = value if value != "" else "no value"
+                for valid_value in modifiable_field_value:
+                    valid_value = valid_value if valid_value != "" and valid_value is not None else "no value"
                     field = {
                         "type": "input",
                         "block_id": f"multivalue_block_id_{modifiable_field_name}_{item_number}",
@@ -361,7 +361,7 @@ class SlackProvision:
                                 "type": "plain_text",
                                 "text": "Insert value (empty to remove)",
                             },
-                            "initial_value": value,
+                            "initial_value": valid_value,
                             "multiline": False,
                         },
                         "optional": True,
@@ -369,7 +369,7 @@ class SlackProvision:
                     blocks.append(field)
                     item_number += 1
                 continue
-            value = modifiable_field_value if modifiable_field_value != "" else "no value"
+            valid_value = modifiable_field_value if modifiable_field_value != "" and modifiable_field_value is not None else "no value"
 
             field = {
                 "type": "input",
@@ -382,7 +382,7 @@ class SlackProvision:
                         "type": "plain_text",
                         "text": "Insert value (empty to remove)",
                     },
-                    "initial_value": value,
+                    "initial_value": valid_value,
                     "multiline": False,
                 },
                 "optional": True,
