@@ -84,8 +84,6 @@ class SlackProvision:
                 message = f"reason for rejection: {self.reason}"
                 asyncio.run(self.send_notifications(message=message, mention_requester=True))
 
-
-
             elif self.action_id == "Edit":
                 self.open_edit_view()
                 return
@@ -341,7 +339,7 @@ class SlackProvision:
                             "action_id": f"action_id_{modifiable_field_name}_{item_number}",
                             "placeholder": {
                                 "type": "plain_text",
-                                "text": "Insert value",
+                                "text": "Insert value (empty to remove)",
                             },
                             "initial_value": "no value",
                             "multiline": False,
@@ -361,7 +359,7 @@ class SlackProvision:
                             "action_id": f"action_id_{modifiable_field_name}_{item_number}",
                             "placeholder": {
                                 "type": "plain_text",
-                                "text": "Insert value",
+                                "text": "Insert value (empty to remove)",
                             },
                             "initial_value": value,
                             "multiline": False,
@@ -371,6 +369,8 @@ class SlackProvision:
                     blocks.append(field)
                     item_number += 1
                 continue
+            value = modifiable_field_value if modifiable_field_value != "" else "no value"
+
             field = {
                 "type": "input",
                 "block_id": f"block_id_{modifiable_field_name}",
@@ -380,9 +380,9 @@ class SlackProvision:
                     "action_id": f"action_id_{modifiable_field_name}",
                     "placeholder": {
                         "type": "plain_text",
-                        "text": "Insert value",
+                        "text": "Insert value (empty to remove)",
                     },
-                    "initial_value": modifiable_field_value,
+                    "initial_value": value,
                     "multiline": False,
                 },
                 "optional": True,
