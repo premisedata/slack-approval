@@ -345,7 +345,7 @@ class SlackProvision:
                             "action_id": f"action_id_{modifiable_field_name}_{item_number}",
                             "placeholder": {
                                 "type": "plain_text",
-                                "text": value,
+                                "text": "value",
                             },
                             "initial_value": value,
                             "multiline": False,
