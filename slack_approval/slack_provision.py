@@ -419,8 +419,8 @@ class SlackProvision:
 
         for block_name, block_values in blocks.items():
             new_value = block_values[f"action_id_{block_name}"]["value"]
-            if new_value is None:
-                new_value = ""
+            if new_value is None or new_value == "":
+                continue
             self.inputs["modified"] = True
             self.inputs[re.sub(r"_\d+$", '', block_name)].append(new_value)
 
