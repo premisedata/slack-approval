@@ -347,6 +347,7 @@ class SlackProvision:
                         "optional": True,
                     }
                     blocks.append(field)
+                    blocks.append({"type": "divider"})
                     continue
                 for valid_value in modifiable_field_value:
                     valid_value = valid_value if valid_value != "" and valid_value is not None else "no value"
@@ -368,6 +369,7 @@ class SlackProvision:
                     }
                     blocks.append(field)
                     item_number += 1
+                blocks.append({"type": "divider"})
                 continue
             valid_value = modifiable_field_value if modifiable_field_value != "" and modifiable_field_value is not None else "no value"
 
@@ -388,6 +390,7 @@ class SlackProvision:
                 "optional": True,
             }
             blocks.append(field)
+            blocks.append({"type": "divider"})
         return blocks
 
     def get_modifiable_fields(self):
