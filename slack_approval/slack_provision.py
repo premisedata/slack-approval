@@ -122,7 +122,7 @@ class SlackProvision:
                 self.inputs.pop("hide")
 
             # Message to requester
-            slack_web_client = await AsyncWebClient(self.token)
+            slack_web_client = WebClient(self.token)
             response = slack_web_client.chat_update(
                 channel=self.approvers_channel,
                 ts=self.approvers_ts,
@@ -137,7 +137,7 @@ class SlackProvision:
     def send_message_requester(self, blocks):
         try:
             # Message to requester
-            slack_web_client = await AsyncWebClient(self.token)
+            slack_web_client = WebClient(self.token)
             response = slack_web_client.chat_update(
                 channel=self.requesters_channel,
                 ts=self.requesters_ts,
