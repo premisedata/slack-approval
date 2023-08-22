@@ -346,7 +346,7 @@ class SlackProvision:
                                 "type": "plain_text",
                                 "text": value,
                             },
-                            "initial_value": value,
+                            "initial_value": value if value != "" else "no value",
                             "multiline": False,
                         },
                         "optional": True,
