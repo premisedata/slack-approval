@@ -335,6 +335,7 @@ class SlackProvision:
             if isinstance(modifiable_field_value, list):
                 item_number = 0
                 for value in modifiable_field_value:
+                    value = value if value != "" else "no value",
                     field = {
                         "type": "input",
                         "block_id": f"multivalue_block_id_{modifiable_field_name}_{item_number}",
@@ -346,7 +347,7 @@ class SlackProvision:
                                 "type": "plain_text",
                                 "text": value,
                             },
-                            "initial_value": value if value != "" else "no value",
+                            "initial_value": value,
                             "multiline": False,
                         },
                         "optional": True,
