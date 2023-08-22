@@ -321,7 +321,7 @@ class SlackProvision:
 
     def construct_modifiable_fields_blocks(self):
         blocks = [
-            {"type": "section", "text": {"type": "mrkdwn", "text": "Modifiable fields"}}
+            {"type": "section", "text": {"type": "mrkdwn", "text": "Modify fields (empty text to remove)"}}
         ]
         for (
                 modifiable_field_name,
