@@ -87,12 +87,24 @@ class SlackProvision:
                 #     channel=self.channel_id,
                 #     mention_requester=True
                 # )
-                self.send_message_to_thread(
-                    message=message,
+                # self.send_message_to_thread(
+                #     message=message,
+                #     thread_ts=self.requesters_ts,
+                #     channel=self.requesters_channel,
+                #     mention_requester=True
+                # )
+                import asyncio
+                asyncio.run(self.send_message_to_thread(message=message,
                     thread_ts=self.requesters_ts,
                     channel=self.requesters_channel,
-                    mention_requester=True
-                )
+                    mention_requester=True))
+
+                asyncio.run(self.send_message_to_thread(message=message,
+                                                        thread_ts=self.approvers_ts,
+                                                        channel=self.channel_id,
+                                                        mention_requester=True))
+
+
             elif self.action_id == "Edit":
                 self.open_edit_view()
                 return
@@ -165,12 +177,12 @@ class SlackProvision:
         self.send_message_approver(blocks)
         self.send_message_requester(blocks)
 
-    def send_message_to_thread(self, message, thread_ts, channel, mention_requester=False):
+    async def send_message_to_thread(self, message, thread_ts, channel, mention_requester=False):
         try:
             if mention_requester:
                 message = f"<@{self.user_id}> {message}"
             client = WebClient(self.token)
-            client.chat_postMessage(
+            response = await client.chat_postMessage(
                 channel=channel,
                 thread_ts=thread_ts,
                 text=message,
