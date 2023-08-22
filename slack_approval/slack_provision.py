@@ -113,7 +113,7 @@ class SlackProvision:
     def rejected():
         logger.info("request rejected")
 
-    async def send_message_approver(self, blocks):
+    def send_message_approver(self, blocks):
         try:
             hide = self.inputs.get("hide")
             if hide:
@@ -122,8 +122,8 @@ class SlackProvision:
                 self.inputs.pop("hide")
 
             # Message to requester
-            slack_web_client = AsyncWebClient(self.token)
-            response = await slack_web_client.chat_update(
+            slack_web_client = await AsyncWebClient(self.token)
+            response = slack_web_client.chat_update(
                 channel=self.approvers_channel,
                 ts=self.approvers_ts,
                 blocks=blocks,
@@ -134,11 +134,11 @@ class SlackProvision:
             self.exception = e
             logger.error(e, stack_info=True, exc_info=True)
 
-    async def send_message_requester(self, blocks):
+    def send_message_requester(self, blocks):
         try:
             # Message to requester
-            slack_web_client = AsyncWebClient(self.token)
-            response = await slack_web_client.chat_update(
+            slack_web_client = await AsyncWebClient(self.token)
+            response = slack_web_client.chat_update(
                 channel=self.requesters_channel,
                 ts=self.requesters_ts,
                 blocks=blocks,
@@ -155,8 +155,9 @@ class SlackProvision:
                 self.inputs.pop(field, None)
             self.inputs.pop("hide")
         blocks = self.get_message_status(status, mention_requester)
-        asyncio.run(self.send_message_approver(blocks))
-        asyncio.run(self.send_message_requester(blocks))
+        # asyncio.run(self.send_message_approver(blocks))
+        # asyncio.run(self.send_message_requester(blocks))
+        asyncio.run(self.send_message_requester_approver(blocks, blocks))
 
     def send_message_to_thread(self, message, thread_ts, channel, mention_requester=False):
         try:
@@ -182,23 +183,25 @@ class SlackProvision:
         inputs.pop("requesters_channel", None)
         inputs.pop("approvers_channel", None)
         inputs.pop("modifiables_fields", None)
-        blocks = []
-        blocks.extend(get_header_block(name=self.name))
-        blocks.extend(get_inputs_blocks(self.inputs))
-        blocks.extend(get_status_block(status="Pending. Modified ", user=self.user))
-        asyncio.run(self.send_message_requester(blocks))
+        requesters_blocks = []
+        requesters_blocks.extend(get_header_block(name=self.name))
+        requesters_blocks.extend(get_inputs_blocks(self.inputs))
+        requesters_blocks.extend(get_status_block(status="Pending. Modified ", user=self.user))
 
-        blocks = []
-        blocks.extend(get_header_block(name=self.name))
-        blocks.extend(get_inputs_blocks(self.inputs))
+
+        approvers_blocks = []
+        approvers_blocks.extend(get_header_block(name=self.name))
+        approvers_blocks.extend(get_inputs_blocks(self.inputs))
 
         values = self.inputs.copy()
         values["requesters_ts"] = self.requesters_ts
         values["requesters_channel"] = self.requesters_channel
         values["approvers_channel"] = self.approvers_channel
         values["modifiables_fields"] = ";".join(list(self.modifiables_fields.keys()))
-        blocks.extend(get_buttons_blocks(value=json.dumps(values)))
-        asyncio.run(self.send_message_approver(blocks))
+        approvers_blocks.extend(get_buttons_blocks(value=json.dumps(values)))
+        asyncio.run(self.send_message_requester_approver(requesters_blocks, approvers_blocks))
+        # self.send_message_requester(requesters_blocks)
+        # self.send_message_approver(approvers_blocks)
 
     def is_allowed(self):
         if not self.prevent_self_approval:
@@ -490,3 +493,7 @@ class SlackProvision:
                                                 thread_ts=self.approvers_ts,
                                                 channel=self.channel_id,
                                                 mention_requester=True)
+
+    async def send_message_requester_approver(self, requesters_blocks, approvers_blocks):
+        self.send_message_requester(requesters_blocks)
+        self.send_message_approver(approvers_blocks)
