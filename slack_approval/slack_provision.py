@@ -2,9 +2,11 @@ import json
 import os
 import logging
 import re
+import asyncio
 
 from slack_sdk.signature import SignatureVerifier
 from slack_sdk import WebhookClient, WebClient, errors
+from slack_sdk.web.async_client import AsyncWebClient
 
 from slack_approval.utils import (
     get_header_block,
@@ -80,24 +82,10 @@ class SlackProvision:
             elif self.action_id == "Reject Response":
                 self.rejected()
                 message = f"reason for rejection: {self.reason}"
-                # Message to approver same request message thread
-                # self.send_message_to_thread(
-                #     message=message,
-                #     thread_ts=self.approvers_ts,
-                #     channel=self.channel_id,
-                #     mention_requester=True
-                # )
-                # self.send_message_to_thread(
-                #     message=message,
-                #     thread_ts=self.requesters_ts,
-                #     channel=self.requesters_channel,
-                #     mention_requester=True
-                # )
-                import asyncio
                 asyncio.run(self.send_message_to_thread(message=message,
-                    thread_ts=self.requesters_ts,
-                    channel=self.requesters_channel,
-                    mention_requester=True))
+                                                        thread_ts=self.requesters_ts,
+                                                        channel=self.requesters_channel,
+                                                        mention_requester=True))
 
                 asyncio.run(self.send_message_to_thread(message=message,
                                                         thread_ts=self.approvers_ts,
@@ -132,7 +120,7 @@ class SlackProvision:
     def rejected():
         logger.info("request rejected")
 
-    def send_message_approver(self, blocks):
+    async def send_message_approver(self, blocks):
         try:
             hide = self.inputs.get("hide")
             if hide:
@@ -141,7 +129,7 @@ class SlackProvision:
                 self.inputs.pop("hide")
 
             # Message to requester
-            slack_web_client = WebClient(self.token)
+            slack_web_client = await AsyncWebClient(self.token)
             response = slack_web_client.chat_update(
                 channel=self.approvers_channel,
                 ts=self.approvers_ts,
@@ -153,10 +141,10 @@ class SlackProvision:
             self.exception = e
             logger.error(e, stack_info=True, exc_info=True)
 
-    def send_message_requester(self, blocks):
+    async def send_message_requester(self, blocks):
         try:
             # Message to requester
-            slack_web_client = WebClient(self.token)
+            slack_web_client = await AsyncWebClient(self.token)
             slack_web_client.chat_update(
                 channel=self.requesters_channel,
                 ts=self.requesters_ts,
@@ -174,14 +162,14 @@ class SlackProvision:
                 self.inputs.pop(field, None)
             self.inputs.pop("hide")
         blocks = self.get_message_status(status, mention_requester)
-        self.send_message_approver(blocks)
-        self.send_message_requester(blocks)
+        asyncio.run(self.send_message_approver(blocks))
+        asyncio.run(self.send_message_requester(blocks))
 
     async def send_message_to_thread(self, message, thread_ts, channel, mention_requester=False):
         try:
             if mention_requester:
                 message = f"<@{self.user_id}> {message}"
-            client = WebClient(self.token)
+            client = AsyncWebClient(self.token)
             response = await client.chat_postMessage(
                 channel=channel,
                 thread_ts=thread_ts,
@@ -205,7 +193,7 @@ class SlackProvision:
         blocks.extend(get_header_block(name=self.name))
         blocks.extend(get_inputs_blocks(self.inputs))
         blocks.extend(get_status_block(status="Pending. Modified ", user=self.user))
-        self.send_message_requester(blocks)
+        asyncio.run(self.send_message_requester(blocks))
 
         blocks = []
         blocks.extend(get_header_block(name=self.name))
@@ -217,7 +205,7 @@ class SlackProvision:
         values["approvers_channel"] = self.approvers_channel
         values["modifiables_fields"] = ";".join(list(self.modifiables_fields.keys()))
         blocks.extend(get_buttons_blocks(value=json.dumps(values)))
-        self.send_message_approver(blocks)
+        asyncio.run(self.send_message_approver(blocks))
 
     def is_allowed(self):
         if not self.prevent_self_approval:
@@ -272,7 +260,8 @@ class SlackProvision:
         blocks = []
         blocks.extend(get_header_block(name=self.name))
         blocks.extend(get_inputs_blocks(self.inputs))
-        blocks.extend(get_status_block(status=status, user=self.user, mention_requester=mention_requester, user_id=self.user_id))
+        blocks.extend(
+            get_status_block(status=status, user=self.user, mention_requester=mention_requester, user_id=self.user_id))
         if self.exception:
             blocks.extend(get_exception_block(self.exception))
 
@@ -454,7 +443,6 @@ class SlackProvision:
                 continue
             self.inputs["modified"] = True
             self.inputs[re.sub(r"_\d+$", '', block_name)].append(new_value)
-
 
     @staticmethod
     def construct_reason_modal(private_metadata):
