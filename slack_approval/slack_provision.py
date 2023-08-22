@@ -67,7 +67,7 @@ class SlackProvision:
             self.action_id = "Not allowed"
 
     def __call__(self):
-        mention_requester = False
+        mention_requester = True
         try:
             if self.action_id == "Approved":
                 mention_requester = True
