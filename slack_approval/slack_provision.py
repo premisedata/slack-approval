@@ -82,15 +82,8 @@ class SlackProvision:
             elif self.action_id == "Reject Response":
                 self.rejected()
                 message = f"reason for rejection: {self.reason}"
-                asyncio.run(self.send_message_to_thread(message=message,
-                                                        thread_ts=self.requesters_ts,
-                                                        channel=self.requesters_channel,
-                                                        mention_requester=True))
-
-                asyncio.run(self.send_message_to_thread(message=message,
-                                                        thread_ts=self.approvers_ts,
-                                                        channel=self.channel_id,
-                                                        mention_requester=True))
+                asyncio.run(self.send_notifications(message=message, mention_requester=True))
+                
 
 
             elif self.action_id == "Edit":
@@ -129,8 +122,8 @@ class SlackProvision:
                 self.inputs.pop("hide")
 
             # Message to requester
-            slack_web_client = await AsyncWebClient(self.token)
-            response = slack_web_client.chat_update(
+            slack_web_client = AsyncWebClient(self.token)
+            response = await slack_web_client.chat_update(
                 channel=self.approvers_channel,
                 ts=self.approvers_ts,
                 blocks=blocks,
@@ -144,8 +137,8 @@ class SlackProvision:
     async def send_message_requester(self, blocks):
         try:
             # Message to requester
-            slack_web_client = await AsyncWebClient(self.token)
-            slack_web_client.chat_update(
+            slack_web_client = AsyncWebClient(self.token)
+            response = await slack_web_client.chat_update(
                 channel=self.requesters_channel,
                 ts=self.requesters_ts,
                 blocks=blocks,
@@ -486,3 +479,14 @@ class SlackProvision:
             "prevent_self_approval": self.prevent_self_approval,
             "modifiables_fields": self.modifiables_fields,
         }
+
+    async def send_notifications(self, message, mention_requester):
+        asyncio.run(self.send_message_to_thread(message=message,
+                                                thread_ts=self.requesters_ts,
+                                                channel=self.requesters_channel,
+                                                mention_requester=True))
+
+        asyncio.run(self.send_message_to_thread(message=message,
+                                                thread_ts=self.approvers_ts,
+                                                channel=self.channel_id,
+                                                mention_requester=True))
