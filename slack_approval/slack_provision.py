@@ -334,6 +334,25 @@ class SlackProvision:
         ) in self.modifiables_fields.items():
             if isinstance(modifiable_field_value, list):
                 item_number = 0
+                if len(modifiable_field_value) == 0:
+                    field = {
+                        "type": "input",
+                        "block_id": f"multivalue_block_id_{modifiable_field_name}_{item_number}",
+                        "label": {"type": "plain_text", "text": modifiable_field_name},
+                        "element": {
+                            "type": "plain_text_input",
+                            "action_id": f"action_id_{modifiable_field_name}_{item_number}",
+                            "placeholder": {
+                                "type": "plain_text",
+                                "text": "Insert value",
+                            },
+                            "initial_value": "no value",
+                            "multiline": False,
+                        },
+                        "optional": True,
+                    }
+                    blocks.append(field)
+                    continue
                 for value in modifiable_field_value:
                     value = value if value != "" else "no value"
                     field = {
@@ -345,7 +364,7 @@ class SlackProvision:
                             "action_id": f"action_id_{modifiable_field_name}_{item_number}",
                             "placeholder": {
                                 "type": "plain_text",
-                                "text": "value",
+                                "text": "Insert value",
                             },
                             "initial_value": value,
                             "multiline": False,
@@ -364,7 +383,7 @@ class SlackProvision:
                     "action_id": f"action_id_{modifiable_field_name}",
                     "placeholder": {
                         "type": "plain_text",
-                        "text": modifiable_field_value,
+                        "text": "Insert value",
                     },
                     "initial_value": modifiable_field_value,
                     "multiline": False,
@@ -423,6 +442,7 @@ class SlackProvision:
                 continue
             self.inputs["modified"] = True
             self.inputs[re.sub(r"_\d+$", '', block_name)].append(new_value)
+
 
     @staticmethod
     def construct_reason_modal(private_metadata):
