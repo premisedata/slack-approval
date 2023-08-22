@@ -81,12 +81,12 @@ class SlackProvision:
                 self.rejected()
                 message = f"reason for rejection: {self.reason}"
                 # Message to approver same request message thread
-                self.send_message_to_thread(
-                    message=message,
-                    thread_ts=self.approvers_ts,
-                    channel=self.channel_id,
-                    mention_requester=True
-                )
+                # self.send_message_to_thread(
+                #     message=message,
+                #     thread_ts=self.approvers_ts,
+                #     channel=self.channel_id,
+                #     mention_requester=True
+                # )
                 self.send_message_to_thread(
                     message=message,
                     thread_ts=self.requesters_ts,
