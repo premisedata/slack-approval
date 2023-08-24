@@ -230,7 +230,7 @@ class SlackProvision:
         self.user_id = self.user_payload["id"]
 
         slack_web_client = WebClient(self.token)
-        user_info = slack_web_client.lookupByEmail(email=self.requester)
+        user_info = slack_web_client.users_lookupByEmail(email=self.requester)
         user_email = user_info["user"]["profile"]["email"]
         self.user_payload["user_email"] = user_email
 
