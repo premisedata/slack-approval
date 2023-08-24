@@ -40,7 +40,7 @@ class SlackRequest:
                 user_response = slack_web_client.users_lookupByEmail(email=self.inputs.get("requester"))
                 logger.info(user_response)
                 if user_response and user_response.status_code == 200:
-                    self.value["requester_info"] = json.dumps(user_response["user"])
+                    self.value["requester_info"] = json.dumps({"id":user_response["user"]["id"]})
             except errors.SlackApiError as e:
                 logger.error(e, stack_info=True, exc_info=True)
 

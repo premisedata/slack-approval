@@ -162,12 +162,12 @@ class SlackProvision:
 
     def send_message_to_thread(self, message, thread_ts, channel, mention_requester=False):
         try:
-            if getattr(self, "requester_info", None) is None or "user" not in self.requester_info or "id" not in \
-                    self.requester_info["user"]:
+            if getattr(self, "requester_info", None) is None or "id" not in \
+                    self.requester_info:
                 mention_requester = False
                 requester_info = None
             else:
-                requester_info = self.requester_info["user"]["id"]
+                requester_info = self.requester_info["id"]
 
             if mention_requester and requester_info:
                 message = f"<@{requester_info}> {message}"
@@ -263,12 +263,12 @@ class SlackProvision:
         blocks = []
         blocks.extend(get_header_block(name=self.name))
         blocks.extend(get_inputs_blocks(self.inputs))
-        if getattr(self, "requester_info", None) is None or "user" not in self.requester_info or "id" not in \
-                self.requester_info["user"]:
+        if getattr(self, "requester_info", None) or "id" not in \
+                self.requester_info:
             mention_requester = False
             requester_info = None
         else:
-            requester_info = self.requester_info["user"]["id"]
+            requester_info = self.requester_info["id"]
         blocks.extend(
             get_status_block(status=status, user=self.user, mention_requester=mention_requester, user_id=requester_info))
         if self.exception:
