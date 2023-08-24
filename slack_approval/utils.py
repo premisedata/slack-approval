@@ -21,7 +21,7 @@ def get_inputs_blocks(inputs):
             },
         }
         for key, value in inputs.items()
-        if key != "provision_class" and key != "modifiables_fields" and key != "modified"
+        if key != "provision_class" and key != "modifiables_fields" and key != "modified" and key != "requester_info"
     ]
     input_block.append({"type": "divider"})
     return input_block
