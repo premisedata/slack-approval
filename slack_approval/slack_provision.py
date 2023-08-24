@@ -58,6 +58,7 @@ class SlackProvision:
         self.requesters_channel = self.inputs.pop("requesters_channel")
         self.approvers_channel = self.inputs.pop("approvers_channel")
         self.requester = self.inputs.get("requester", "")
+        # self.requester_info =
         self.modifiables_fields = self.get_modifiable_fields()
         """ Requester can response depending on flag for prevent self approval and user-requester values
             Backward compatibility: prevent_self_approval deactivated """
@@ -155,8 +156,6 @@ class SlackProvision:
                 self.inputs.pop(field, None)
             self.inputs.pop("hide")
         blocks = self.get_message_status(status, mention_requester)
-        # asyncio.run(self.send_message_approver(blocks))
-        # asyncio.run(self.send_message_requester(blocks))
         asyncio.run(self.send_message_requester_approver(blocks, blocks))
 
     def send_message_to_thread(self, message, thread_ts, channel, mention_requester=False):
