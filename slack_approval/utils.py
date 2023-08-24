@@ -49,11 +49,8 @@ def get_exception_block(exception):
         }
     ]
 
-def get_buttons_blocks(value):
-    return [{
-                "type": "actions",
-                "elements": [
-                    {
+def get_accepted_button(value):
+    return {
                         "type": "button",
                         "text": {
                             "type": "plain_text",
@@ -78,8 +75,10 @@ def get_buttons_blocks(value):
                                 "text": "Stop, I've changed my mind!",
                             },
                         },
-                    },
-                    {
+                    }
+
+def get_rejected_button(value):
+    return {
                         "type": "button",
                         "text": {
                             "type": "plain_text",
@@ -89,8 +88,10 @@ def get_buttons_blocks(value):
                         "value": value,
                         "style": "danger",
                         "action_id": "Rejected",
-                    },
-                    {
+                    }
+
+def get_edit_button(value):
+    return {
                         "type": "button",
                         "text": {
                             "type": "plain_text",
@@ -99,6 +100,12 @@ def get_buttons_blocks(value):
                         },
                         "value": value,
                         "action_id": "Edit",
-                    },
-                ],
+                    }
+def get_buttons_blocks(value, edit_button = False):
+    buttons = [get_accepted_button(value), get_rejected_button(value)]
+    if edit_button:
+        buttons.append(get_edit_button(value))
+    return [{
+                "type": "actions",
+                "elements": buttons,
             }]

@@ -35,6 +35,7 @@ class SlackRequest:
             self.inputs.pop("approvers_channel")
 
 
+
     def send_request_message(self):
         slack_web_client = WebClient(self.token)
         blocks = []
@@ -65,7 +66,8 @@ class SlackRequest:
             logger.error(e, stack_info=True, exc_info=True)
         value = json.dumps(self.value)
 
-        blocks.extend(get_buttons_blocks(value))
+        edit_button = self.inputs.get("modifiables_fields", None) is not None and self.inputs.get("modifiables_fields") != ""
+        blocks.extend(get_buttons_blocks(value, edit_button = edit_button))
 
         # Send to approvers channel with `approve` and `reject` buttons
         try:
