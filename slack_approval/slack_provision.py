@@ -246,6 +246,7 @@ class SlackProvision:
         self.approvers_ts = metadata["approvers_ts"]
         self.inputs = metadata["inputs"]
         self.name = self.inputs["provision_class"]
+        self.requester_info = self.requester_info
         self.response_url = metadata["response_url"]
         self.requesters_channel = metadata["requesters_channel"]
         self.approvers_channel = metadata["approvers_channel"]
@@ -500,6 +501,7 @@ class SlackProvision:
             "requester": self.requester,
             "prevent_self_approval": self.prevent_self_approval,
             "modifiables_fields": self.modifiables_fields,
+            "requester_info": self.requester_info
         }
 
     async def send_notifications(self, message, mention_requester):
