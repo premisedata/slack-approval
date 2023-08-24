@@ -230,14 +230,16 @@ class SlackProvision:
         self.user_id = self.user_payload["id"]
 
         slack_web_client = WebClient(self.token)
-        user_info = slack_web_client.users_info(user=self.user_id)
+        user_info = slack_web_client.lookupByEmail(email=self.requester)
         user_email = user_info["user"]["profile"]["email"]
         self.user_payload["user_email"] = user_email
 
         if "requester_info" in self.inputs:
             return
 
+
         self.inputs["requester_info"] = user_info
+        logger.info(self.inputs["requester_info"])
 
     def get_private_metadata(self):
         metadata = json.loads(self.payload["view"]["private_metadata"])
