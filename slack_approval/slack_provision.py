@@ -50,6 +50,7 @@ class SlackProvision:
         self.inputs = json.loads(self.action["value"])
         self.response_url = self.payload["response_url"]
         self.action_id = self.action["action_id"]
+        self.requester = self.inputs.get("requester", "")
 
         self.get_user_and_requester_info()
 
@@ -58,7 +59,6 @@ class SlackProvision:
         self.approvers_ts = self.payload["container"]["message_ts"]
         self.requesters_channel = self.inputs.pop("requesters_channel")
         self.approvers_channel = self.inputs.pop("approvers_channel")
-        self.requester = self.inputs.get("requester", "")
         # self.requester_info =
         self.modifiables_fields = self.get_modifiable_fields()
         """ Requester can response depending on flag for prevent self approval and user-requester values
