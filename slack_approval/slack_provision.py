@@ -199,8 +199,6 @@ class SlackProvision:
         edit_button = values.get("modifiables_fields", None) is not None and values["modifiables_fields"] != ""
         approvers_blocks.extend(get_buttons_blocks(value=json.dumps(values), edit_button=edit_button))
         asyncio.run(self.send_message_requester_approver(requesters_blocks, approvers_blocks))
-        # self.send_message_requester(requesters_blocks)
-        # self.send_message_approver(approvers_blocks)
 
     def is_allowed(self):
         if not self.prevent_self_approval:
