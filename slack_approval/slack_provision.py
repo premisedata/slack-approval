@@ -196,7 +196,7 @@ class SlackProvision:
         values["requesters_channel"] = self.requesters_channel
         values["approvers_channel"] = self.approvers_channel
         values["modifiables_fields"] = ";".join(list(self.modifiables_fields.keys()))
-        edit_button = values["modifiables_fields"] is not None and values["modifiables_fields"] != ""
+        edit_button = values.get("modifiables_fields", None) is not None and values["modifiables_fields"] != ""
         approvers_blocks.extend(get_buttons_blocks(value=json.dumps(values), edit_button=edit_button))
         asyncio.run(self.send_message_requester_approver(requesters_blocks, approvers_blocks))
         # self.send_message_requester(requesters_blocks)
