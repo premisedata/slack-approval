@@ -111,6 +111,7 @@ class SlackProvision:
     def rejected():
         logger.info("request rejected")
 
+
     def send_message_approver(self, blocks):
         try:
             hide = self.inputs.get("hide")
@@ -128,6 +129,7 @@ class SlackProvision:
                 as_user=True,
                 text="fallback",
             )
+
         except errors.SlackApiError as e:
             self.exception = e
             logger.error(e, stack_info=True, exc_info=True)
@@ -257,6 +259,7 @@ class SlackProvision:
             get_status_block(status=status, user=self.user, mention_requester=mention_requester, user_id=self.user_id))
         if self.exception:
             blocks.extend(get_exception_block(self.exception))
+
 
         return blocks
 
