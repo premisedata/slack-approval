@@ -50,7 +50,8 @@ class SlackProvision:
         self.inputs = json.loads(self.action["value"])
         self.response_url = self.payload["response_url"]
         self.action_id = self.action["action_id"]
-        self.get_user_info()
+
+        self.get_user_and_requester_info()
 
         self.name = self.inputs["provision_class"]
         self.requesters_ts = self.inputs.pop("requesters_ts")
@@ -161,7 +162,7 @@ class SlackProvision:
     def send_message_to_thread(self, message, thread_ts, channel, mention_requester=False):
         try:
             if mention_requester:
-                message = f"<@{self.user_id}> {message}"
+                message = f"<@{self.inputs['requester_info']['user']['id']}> {message}"
             client = WebClient(self.token)
             response = client.chat_postMessage(
                 channel=channel,
@@ -205,10 +206,7 @@ class SlackProvision:
         if not self.prevent_self_approval:
             return True
         try:
-            slack_web_client = WebClient(self.token)
-            user_info = slack_web_client.users_info(user=self.user_payload["id"])
-            user_email = user_info["user"]["profile"]["email"]
-            if user_email == self.requester and self.action_id == "Approved":
+            if self.user_payload["user_email"] == self.requester and self.action_id == "Approved":
                 return False
             else:
                 return True
@@ -223,12 +221,23 @@ class SlackProvision:
                 and self.payload["view"].get("callback_id", "") == callback_id
         )
 
-    def get_user_info(self):
+    def get_user_and_requester_info(self):
+
         self.user_payload = self.payload["user"]
         self.user = " ".join(
             [s.capitalize() for s in self.user_payload["name"].split(".")]
         )
         self.user_id = self.user_payload["id"]
+
+        slack_web_client = WebClient(self.token)
+        user_info = slack_web_client.users_info(user=self.user_id)
+        user_email = user_info["user"]["profile"]["email"]
+        self.user_payload["user_email"] = user_email
+
+        if "requester_info" in self.inputs:
+            return
+
+        self.inputs["requester_info"] = user_info
 
     def get_private_metadata(self):
         metadata = json.loads(self.payload["view"]["private_metadata"])
@@ -255,7 +264,7 @@ class SlackProvision:
         blocks.extend(get_header_block(name=self.name))
         blocks.extend(get_inputs_blocks(self.inputs))
         blocks.extend(
-            get_status_block(status=status, user=self.user, mention_requester=mention_requester, user_id=self.user_id))
+            get_status_block(status=status, user=self.user, mention_requester=mention_requester, user_id=self.inputs["requester_info"]["user"]["id"]))
         if self.exception:
             blocks.extend(get_exception_block(self.exception))
 
@@ -501,3 +510,19 @@ class SlackProvision:
     async def send_message_requester_approver(self, requesters_blocks, approvers_blocks):
         self.send_message_requester(requesters_blocks)
         self.send_message_approver(approvers_blocks)
+
+    def get_requester_info(self):
+        slack_web_client = WebClient(self.token)
+        user_info = slack_web_client.users_info(user=self.user_payload["id"])
+        user_email = user_info["user"]["profile"]["email"]
+        self.user_payload["user_email"] = user_email
+
+        if "requester_info" in self.inputs:
+            return
+
+        self.inputs["requester_info"] = user_info
+
+
+
+
+

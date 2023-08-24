@@ -34,7 +34,6 @@ class SlackRequest:
         if self.inputs.get("approvers_channel"):
             self.inputs.pop("approvers_channel")
 
-        logger.info(request.json)
 
     def send_request_message(self):
         slack_web_client = WebClient(self.token)
