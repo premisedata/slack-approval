@@ -263,7 +263,7 @@ class SlackProvision:
         blocks = []
         blocks.extend(get_header_block(name=self.name))
         blocks.extend(get_inputs_blocks(self.inputs))
-        if getattr(self, "requester_info", None) or "id" not in \
+        if getattr(self, "requester_info", None) is None or "id" not in \
                 self.requester_info:
             mention_requester = False
             requester_info = None
