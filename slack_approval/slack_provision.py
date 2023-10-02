@@ -58,7 +58,7 @@ class SlackProvision:
         self.requesters_channel = self.inputs.pop("requesters_channel")
         self.approvers_channel = self.inputs.pop("approvers_channel")
         if "requester_info" in self.inputs:
-            self.requester_info = json.loads(self.inputs.pop("requester_info", {}))
+            self.requester_info = json.loads(self.inputs.pop("requester_info"))
 
         self.requester = self.inputs.get("requester", "")
         self.modifiables_fields = self.get_modifiable_fields()
