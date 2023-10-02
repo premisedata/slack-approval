@@ -90,7 +90,7 @@ class SlackProvision:
                 return
             elif self.action_id == "Modified":
                 self.send_modified_message()
-                #asyncio.run(self.send_notifications(message=self.modifications_message, mention_requester=True))
+                asyncio.run(self.send_notifications(message=self.modifications_message, mention_requester=True))
                 return
         except Exception as e:
             self.exception = e
