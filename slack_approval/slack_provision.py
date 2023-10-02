@@ -65,7 +65,6 @@ class SlackProvision:
         """ Requester can response depending on flag for prevent self approval and user-requester values
             Backward compatibility: prevent_self_approval deactivated """
         self.prevent_self_approval = self.inputs.pop("prevent_self_approval", False)
-        self.inputs["modified"] = self.inputs.pop("modified", False)
         if not self.is_allowed():
             self.action_id = "Not allowed"
 
@@ -437,7 +436,6 @@ class SlackProvision:
             actual_value = self.inputs[block_name]
             new_value = block_values[f"action_id_{block_name}"]["value"]
             if actual_value != new_value:
-                self.inputs["modified"] = True
                 self.inputs[block_name] = new_value
 
         blocks = {
@@ -459,7 +457,6 @@ class SlackProvision:
             new_value = block_values[f"action_id_{block_name}"]["value"]
             if new_value is None or new_value == "":
                 continue
-            self.inputs["modified"] = True
             self.inputs[re.sub(r"_\d+$", '', block_name)].append(new_value)
 
     @staticmethod
