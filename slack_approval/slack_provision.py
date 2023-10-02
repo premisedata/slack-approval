@@ -85,13 +85,12 @@ class SlackProvision:
                 self.rejected()
                 message = f"reason for rejection: {self.reason}"
                 asyncio.run(self.send_notifications(message=message, mention_requester=True))
-
             elif self.action_id == "Edit":
                 self.open_edit_view()
                 return
             elif self.action_id == "Modified":
                 self.send_modified_message()
-
+                return
         except Exception as e:
             self.exception = e
             logger.error(e, stack_info=True, exc_info=True)
