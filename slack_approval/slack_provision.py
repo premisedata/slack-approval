@@ -58,14 +58,14 @@ class SlackProvision:
         self.requesters_channel = self.inputs.pop("requesters_channel")
         self.approvers_channel = self.inputs.pop("approvers_channel")
         if "requester_info" in self.inputs:
-            self.requester_info = json.loads(self.inputs["requester_info"])
+            self.requester_info = json.loads(self.inputs.pop("requester_info", ""))
 
         self.requester = self.inputs.get("requester", "")
         self.modifiables_fields = self.get_modifiable_fields()
         """ Requester can response depending on flag for prevent self approval and user-requester values
             Backward compatibility: prevent_self_approval deactivated """
-        self.prevent_self_approval = self.inputs.get("prevent_self_approval", False)
-        self.inputs["modified"] = self.inputs.get("modified", False)
+        self.prevent_self_approval = self.inputs.pop("prevent_self_approval", False)
+        self.inputs["modified"] = self.inputs.pop("modified", False)
         if not self.is_allowed():
             self.action_id = "Not allowed"
 
