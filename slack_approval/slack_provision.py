@@ -91,7 +91,6 @@ class SlackProvision:
                 return
             elif self.action_id == "Modified":
                 self.send_modified_message()
-                return
 
         except Exception as e:
             self.exception = e
