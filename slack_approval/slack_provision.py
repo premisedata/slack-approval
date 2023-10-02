@@ -205,6 +205,7 @@ class SlackProvision:
         values["requesters_channel"] = self.requesters_channel
         values["approvers_channel"] = self.approvers_channel
         values["requester_info"] = json.dumps(self.requester_info)
+        values["prevent_self_approval"] = self.prevent_self_approval
         values["modifiables_fields"] = ";".join(list(self.modifiables_fields.keys()))
         edit_button = values.get("modifiables_fields", None) is not None and values["modifiables_fields"] != ""
         approvers_blocks.extend(get_buttons_blocks(value=json.dumps(values), edit_button=edit_button))
