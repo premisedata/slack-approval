@@ -90,6 +90,7 @@ class SlackProvision:
                 return
             elif self.action_id == "Modified":
                 self.send_modified_message()
+                asyncio.run(self.send_notifications(message=self.modifications_message, mention_requester=True))
                 return
         except Exception as e:
             self.exception = e
@@ -210,6 +211,7 @@ class SlackProvision:
         edit_button = values.get("modifiables_fields", None) is not None and values["modifiables_fields"] != ""
         approvers_blocks.extend(get_buttons_blocks(value=json.dumps(values), edit_button=edit_button))
         asyncio.run(self.send_message_requester_approver(requesters_blocks, approvers_blocks))
+        self.send_message_to_thread()
 
     def is_allowed(self):
         if not self.prevent_self_approval:
@@ -432,11 +434,13 @@ class SlackProvision:
             for block_name, block_values in blocks.items()
             if f"action_id_{block_name}" in block_values
         }
+        self.modifications_message = "Modifications "
         for block_name, block_values in blocks.items():
             actual_value = self.inputs[block_name]
             new_value = block_values[f"action_id_{block_name}"]["value"]
             if actual_value != new_value:
                 self.inputs[block_name] = new_value
+                self.modifications_message = f"{self.modifications_message} {actual_value} -> {new_value} \n"
 
         blocks = {
             block_name.replace("multivalue_block_id_", ""): block_values
@@ -507,12 +511,12 @@ class SlackProvision:
         self.send_message_to_thread(message=message,
                                                 thread_ts=self.requesters_ts,
                                                 channel=self.requesters_channel,
-                                                mention_requester=True)
+                                                mention_requester=mention_requester)
 
         self.send_message_to_thread(message=message,
                                                 thread_ts=self.approvers_ts,
                                                 channel=self.channel_id,
-                                                mention_requester=True)
+                                                mention_requester=mention_requester)
 
     async def send_message_requester_approver(self, requesters_blocks, approvers_blocks):
         self.send_message_requester(requesters_blocks)
