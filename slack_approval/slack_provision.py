@@ -447,14 +447,12 @@ class SlackProvision:
             if "multivalue_block_id_" in block_name
         }
 
-        logger.info(self.inputs)
         old_values = {}
         for block_name, block_values in blocks.items():
             key = re.sub(r"_\d+$", '', block_name)
             if key not in old_values:
                 old_values[key] = self.inputs[key].copy()
-            self.inputs[re.sub(r"_\d+$", '', block_name)] = []
-        logger.info(old_values)
+                self.inputs[re.sub(r"_\d+$", '', block_name)] = []
 
         blocks = {
             block_name: block_values
@@ -468,6 +466,9 @@ class SlackProvision:
                 continue
             self.inputs[re.sub(r"_\d+$", '', block_name)].append(new_value)
 
+        for block_name, block_values in old_values.items():
+            new_value = self.inputs[block_name]
+            self.modifications_message = f"{self.modifications_message} {block_name}:{block_values} -> {new_value} \n"
 
     @staticmethod
     def construct_reason_modal(private_metadata):
