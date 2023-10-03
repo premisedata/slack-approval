@@ -98,12 +98,12 @@ class SlackProvision:
                 return
             elif self.action_id == "Modified":
                 self.send_modified_message()
-                asyncio.run(self.send_message_to_thread(message=message,
+                asyncio.run(self.send_message_to_thread(message=self.modifications_message,
                                                         thread_ts=self.requesters_ts,
                                                         channel=self.requesters_channel,
                                                         mention_requester=mention_requester))
 
-                asyncio.run(self.send_message_to_thread(message=message,
+                asyncio.run(self.send_message_to_thread(message=self.modifications_message,
                                                         thread_ts=self.approvers_ts,
                                                         channel=self.channel_id,
                                                         mention_requester=mention_requester))
@@ -129,7 +129,7 @@ class SlackProvision:
         logger.info("request rejected")
 
 
-    def send_message_approver(self, blocks):
+    async def send_message_approver(self, blocks):
         try:
             hide = self.inputs.get("hide")
             if hide:
@@ -138,8 +138,8 @@ class SlackProvision:
                 self.inputs.pop("hide")
 
             # Message to requester
-            slack_web_client = WebClient(self.token)
-            response = slack_web_client.chat_update(
+            slack_web_client = AsyncWebClient(self.token)
+            response = await slack_web_client.chat_update(
                 channel=self.approvers_channel,
                 ts=self.approvers_ts,
                 blocks=blocks,
@@ -151,11 +151,11 @@ class SlackProvision:
             self.exception = e
             logger.error(e, stack_info=True, exc_info=True)
 
-    def send_message_requester(self, blocks):
+    async def send_message_requester(self, blocks):
         try:
             # Message to requester
-            slack_web_client = WebClient(self.token)
-            response = slack_web_client.chat_update(
+            slack_web_client = AsyncWebClient(self.token)
+            response = await slack_web_client.chat_update(
                 channel=self.requesters_channel,
                 ts=self.requesters_ts,
                 blocks=blocks,
@@ -174,7 +174,7 @@ class SlackProvision:
         blocks = self.get_message_status(status, mention_requester)
         # asyncio.run(self.send_message_approver(blocks))
         # asyncio.run(self.send_message_requester(blocks))
-        asyncio.run(self.send_message_requester_approver(blocks, blocks))
+        self.send_message_requester_approver(blocks, blocks)
 
     async def send_message_to_thread(self, message, thread_ts, channel, mention_requester=False):
         try:
@@ -226,7 +226,7 @@ class SlackProvision:
         values["modifiables_fields"] = ";".join(list(self.modifiables_fields.keys()))
         edit_button = values.get("modifiables_fields", None) is not None and values["modifiables_fields"] != ""
         approvers_blocks.extend(get_buttons_blocks(value=json.dumps(values), edit_button=edit_button))
-        asyncio.run(self.send_message_requester_approver(requesters_blocks, approvers_blocks))
+        self.send_message_requester_approver(requesters_blocks, approvers_blocks)
 
     def is_allowed(self):
         if not self.prevent_self_approval:
@@ -530,17 +530,17 @@ class SlackProvision:
             "requester_info": self.requester_info
         }
 
-    # def send_notifications(self, message, mention_requester):
-    #     self.send_message_to_thread(message=message,
-    #                                             thread_ts=self.requesters_ts,
-    #                                             channel=self.requesters_channel,
-    #                                             mention_requester=mention_requester)
-    #
-    #     self.send_message_to_thread(message=message,
-    #                                             thread_ts=self.approvers_ts,
-    #                                             channel=self.channel_id,
-    #                                             mention_requester=mention_requester)
+    def send_notifications(self, message, mention_requester):
+        self.send_message_to_thread(message=message,
+                                                thread_ts=self.requesters_ts,
+                                                channel=self.requesters_channel,
+                                                mention_requester=mention_requester)
 
-    async def send_message_requester_approver(self, requesters_blocks, approvers_blocks):
-        self.send_message_requester(requesters_blocks)
-        self.send_message_approver(approvers_blocks)
+        self.send_message_to_thread(message=message,
+                                                thread_ts=self.approvers_ts,
+                                                channel=self.channel_id,
+                                                mention_requester=mention_requester)
+
+    def send_message_requester_approver(self, requesters_blocks, approvers_blocks):
+        asyncio.run(self.send_message_requester(requesters_blocks))
+        asyncio.run(self.send_message_approver(approvers_blocks))
