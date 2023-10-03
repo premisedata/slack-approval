@@ -447,6 +447,7 @@ class SlackProvision:
             if "multivalue_block_id_" in block_name
         }
 
+        logger.info(self.inputs)
         old_values = {}
         for block_name, block_values in blocks.items():
             old_values[re.sub(r"_\d+$", '', block_name)] = self.inputs[re.sub(r"_\d+$", '', block_name)]
