@@ -452,6 +452,7 @@ class SlackProvision:
         for block_name, block_values in blocks.items():
             old_values[re.sub(r"_\d+$", '', block_name)] = self.inputs[re.sub(r"_\d+$", '', block_name)]
             self.inputs[re.sub(r"_\d+$", '', block_name)] = []
+        logger.info(old_values)
 
         blocks = {
             block_name: block_values
@@ -465,9 +466,6 @@ class SlackProvision:
                 continue
             self.inputs[re.sub(r"_\d+$", '', block_name)].append(new_value)
 
-        for block_name, old_value in old_values.items():
-            new_values = self.inputs[re.sub(r"_\d+$", '', block_name)]
-            self.modifications_message = f"{self.modifications_message} {block_name}:{old_value} -> {new_values} \n"
 
     @staticmethod
     def construct_reason_modal(private_metadata):
