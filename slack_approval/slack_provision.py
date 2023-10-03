@@ -84,13 +84,29 @@ class SlackProvision:
             elif self.action_id == "Reject Response":
                 self.rejected()
                 message = f"reason for rejection: {self.reason}"
-                asyncio.run(self.send_notifications(message=message, mention_requester=True))
+                asyncio.run(self.send_message_to_thread(message=message,
+                                            thread_ts=self.requesters_ts,
+                                            channel=self.requesters_channel,
+                                            mention_requester=mention_requester))
+
+                asyncio.run(self.send_message_to_thread(message=message,
+                                            thread_ts=self.approvers_ts,
+                                            channel=self.channel_id,
+                                            mention_requester=mention_requester))
             elif self.action_id == "Edit":
                 self.open_edit_view()
                 return
             elif self.action_id == "Modified":
                 self.send_modified_message()
-                asyncio.run(self.send_notifications(message=self.modifications_message, mention_requester=True))
+                asyncio.run(self.send_message_to_thread(message=message,
+                                                        thread_ts=self.requesters_ts,
+                                                        channel=self.requesters_channel,
+                                                        mention_requester=mention_requester))
+
+                asyncio.run(self.send_message_to_thread(message=message,
+                                                        thread_ts=self.approvers_ts,
+                                                        channel=self.channel_id,
+                                                        mention_requester=mention_requester))
                 return
         except Exception as e:
             self.exception = e
@@ -160,7 +176,7 @@ class SlackProvision:
         # asyncio.run(self.send_message_requester(blocks))
         asyncio.run(self.send_message_requester_approver(blocks, blocks))
 
-    def send_message_to_thread(self, message, thread_ts, channel, mention_requester=False):
+    async def send_message_to_thread(self, message, thread_ts, channel, mention_requester=False):
         try:
             if getattr(self, "requester_info", None) is None or "id" not in \
                     self.requester_info:
@@ -171,8 +187,8 @@ class SlackProvision:
 
             if mention_requester and requester_info:
                 message = f"<@{requester_info}> {message}"
-            client = WebClient(self.token)
-            response = client.chat_postMessage(
+            client = AsyncWebClient(self.token)
+            response = await client.chat_postMessage(
                 channel=channel,
                 thread_ts=thread_ts,
                 text=message,
@@ -514,16 +530,16 @@ class SlackProvision:
             "requester_info": self.requester_info
         }
 
-    async def send_notifications(self, message, mention_requester):
-        self.send_message_to_thread(message=message,
-                                                thread_ts=self.requesters_ts,
-                                                channel=self.requesters_channel,
-                                                mention_requester=mention_requester)
-
-        self.send_message_to_thread(message=message,
-                                                thread_ts=self.approvers_ts,
-                                                channel=self.channel_id,
-                                                mention_requester=mention_requester)
+    # def send_notifications(self, message, mention_requester):
+    #     self.send_message_to_thread(message=message,
+    #                                             thread_ts=self.requesters_ts,
+    #                                             channel=self.requesters_channel,
+    #                                             mention_requester=mention_requester)
+    #
+    #     self.send_message_to_thread(message=message,
+    #                                             thread_ts=self.approvers_ts,
+    #                                             channel=self.channel_id,
+    #                                             mention_requester=mention_requester)
 
     async def send_message_requester_approver(self, requesters_blocks, approvers_blocks):
         self.send_message_requester(requesters_blocks)
