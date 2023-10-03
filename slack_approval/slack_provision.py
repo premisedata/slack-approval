@@ -28,6 +28,7 @@ class SlackProvision:
         self.user_payload = None
         self.user = None
         self.user_id = None
+        self.modifications_message = None
         self.token = os.environ.get("SLACK_BOT_TOKEN")
         self.data = request.get_data()
         self.headers = request.headers
@@ -449,11 +450,13 @@ class SlackProvision:
             for block_name, block_values in blocks.items()
             if f"action_id_{block_name}" in block_values
         }
-        self.modifications_message = "Modifications "
+
         for block_name, block_values in blocks.items():
             actual_value = self.inputs[block_name]
             new_value = block_values[f"action_id_{block_name}"]["value"]
             if actual_value != new_value:
+                if self.modifications_message is None:
+                    self.modifications_message = "Modifications: "
                 self.inputs[block_name] = new_value
                 self.modifications_message = f"{self.modifications_message} {actual_value} -> {new_value} \n"
 
@@ -484,7 +487,10 @@ class SlackProvision:
 
         for block_name, block_values in old_values.items():
             new_value = self.inputs[block_name]
-            self.modifications_message = f"{self.modifications_message} {block_name}:{block_values} -> {new_value} \n"
+            if new_value != block_values:
+                if self.modifications_message is None:
+                    self.modifications_message = "Modifications: "
+                self.modifications_message = f"{self.modifications_message} {block_name}:{block_values} -> {new_value} \n"
 
     @staticmethod
     def construct_reason_modal(private_metadata):
