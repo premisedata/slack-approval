@@ -460,7 +460,9 @@ class SlackProvision:
             new_value = block_values[f"action_id_{block_name}"]["value"]
             if new_value is None or new_value == "":
                 continue
+            actual_value = self.inputs[re.sub(r"_\d+$", '', block_name)]
             self.inputs[re.sub(r"_\d+$", '', block_name)].append(new_value)
+            self.modifications_message = f"{self.modifications_message} {actual_value} -> {new_value} \n"
 
     @staticmethod
     def construct_reason_modal(private_metadata):
