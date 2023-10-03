@@ -99,15 +99,16 @@ class SlackProvision:
                 return
             elif self.action_id == "Modified":
                 self.send_modified_message()
-                asyncio.run(self.send_message_to_thread(message=self.modifications_message,
-                                                        thread_ts=self.requesters_ts,
-                                                        channel=self.requesters_channel,
-                                                        mention_requester=mention_requester))
+                if self.modifications_message is not None:
+                    asyncio.run(self.send_message_to_thread(message=self.modifications_message,
+                                                            thread_ts=self.requesters_ts,
+                                                            channel=self.requesters_channel,
+                                                            mention_requester=mention_requester))
 
-                asyncio.run(self.send_message_to_thread(message=self.modifications_message,
-                                                        thread_ts=self.approvers_ts,
-                                                        channel=self.channel_id,
-                                                        mention_requester=mention_requester))
+                    asyncio.run(self.send_message_to_thread(message=self.modifications_message,
+                                                            thread_ts=self.approvers_ts,
+                                                            channel=self.channel_id,
+                                                            mention_requester=mention_requester))
                 return
         except Exception as e:
             self.exception = e
@@ -178,6 +179,7 @@ class SlackProvision:
         self.send_message_requester_approver(blocks, blocks)
 
     async def send_message_to_thread(self, message, thread_ts, channel, mention_requester=False):
+
         try:
             if getattr(self, "requester_info", None) is None or "id" not in \
                     self.requester_info:
