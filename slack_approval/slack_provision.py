@@ -450,7 +450,7 @@ class SlackProvision:
         logger.info(self.inputs)
         old_values = {}
         for block_name, block_values in blocks.items():
-            old_values[re.sub(r"_\d+$", '', block_name)] = self.inputs[re.sub(r"_\d+$", '', block_name)]
+            old_values[re.sub(r"_\d+$", '', block_name)] = self.inputs[re.sub(r"_\d+$", '', block_name)].copy()
             self.inputs[re.sub(r"_\d+$", '', block_name)] = []
         logger.info(old_values)
 
