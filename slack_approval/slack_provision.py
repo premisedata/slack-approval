@@ -28,6 +28,7 @@ class SlackProvision:
         self.user_payload = None
         self.user = None
         self.user_id = None
+        self.modifications_message = None
         self.token = os.environ.get("SLACK_BOT_TOKEN")
         self.data = request.get_data()
         self.headers = request.headers
@@ -58,14 +59,13 @@ class SlackProvision:
         self.requesters_channel = self.inputs.pop("requesters_channel")
         self.approvers_channel = self.inputs.pop("approvers_channel")
         if "requester_info" in self.inputs:
-            self.requester_info = json.loads(self.inputs["requester_info"])
+            self.requester_info = json.loads(self.inputs.pop("requester_info"))
 
         self.requester = self.inputs.get("requester", "")
         self.modifiables_fields = self.get_modifiable_fields()
         """ Requester can response depending on flag for prevent self approval and user-requester values
             Backward compatibility: prevent_self_approval deactivated """
-        self.prevent_self_approval = self.inputs.get("prevent_self_approval", False)
-        self.inputs["modified"] = self.inputs.get("modified", False)
+        self.prevent_self_approval = self.inputs.pop("prevent_self_approval", False)
         if not self.is_allowed():
             self.action_id = "Not allowed"
 
@@ -85,15 +85,31 @@ class SlackProvision:
             elif self.action_id == "Reject Response":
                 self.rejected()
                 message = f"reason for rejection: {self.reason}"
-                asyncio.run(self.send_notifications(message=message, mention_requester=True))
+                asyncio.run(self.send_message_to_thread(message=message,
+                                            thread_ts=self.requesters_ts,
+                                            channel=self.requesters_channel,
+                                            mention_requester=mention_requester))
 
+                asyncio.run(self.send_message_to_thread(message=message,
+                                            thread_ts=self.approvers_ts,
+                                            channel=self.channel_id,
+                                            mention_requester=mention_requester))
             elif self.action_id == "Edit":
                 self.open_edit_view()
                 return
             elif self.action_id == "Modified":
                 self.send_modified_message()
-                return
+                if self.modifications_message is not None:
+                    asyncio.run(self.send_message_to_thread(message=self.modifications_message,
+                                                            thread_ts=self.requesters_ts,
+                                                            channel=self.requesters_channel,
+                                                            mention_requester=mention_requester))
 
+                    asyncio.run(self.send_message_to_thread(message=self.modifications_message,
+                                                            thread_ts=self.approvers_ts,
+                                                            channel=self.channel_id,
+                                                            mention_requester=mention_requester))
+                return
         except Exception as e:
             self.exception = e
             logger.error(e, stack_info=True, exc_info=True)
@@ -115,7 +131,7 @@ class SlackProvision:
         logger.info("request rejected")
 
 
-    def send_message_approver(self, blocks):
+    async def send_message_approver(self, blocks):
         try:
             hide = self.inputs.get("hide")
             if hide:
@@ -124,8 +140,8 @@ class SlackProvision:
                 self.inputs.pop("hide")
 
             # Message to requester
-            slack_web_client = WebClient(self.token)
-            response = slack_web_client.chat_update(
+            slack_web_client = AsyncWebClient(self.token)
+            response = await slack_web_client.chat_update(
                 channel=self.approvers_channel,
                 ts=self.approvers_ts,
                 blocks=blocks,
@@ -137,11 +153,11 @@ class SlackProvision:
             self.exception = e
             logger.error(e, stack_info=True, exc_info=True)
 
-    def send_message_requester(self, blocks):
+    async def send_message_requester(self, blocks):
         try:
             # Message to requester
-            slack_web_client = WebClient(self.token)
-            response = slack_web_client.chat_update(
+            slack_web_client = AsyncWebClient(self.token)
+            response = await slack_web_client.chat_update(
                 channel=self.requesters_channel,
                 ts=self.requesters_ts,
                 blocks=blocks,
@@ -160,9 +176,10 @@ class SlackProvision:
         blocks = self.get_message_status(status, mention_requester)
         # asyncio.run(self.send_message_approver(blocks))
         # asyncio.run(self.send_message_requester(blocks))
-        asyncio.run(self.send_message_requester_approver(blocks, blocks))
+        self.send_message_requester_approver(blocks, blocks)
 
-    def send_message_to_thread(self, message, thread_ts, channel, mention_requester=False):
+    async def send_message_to_thread(self, message, thread_ts, channel, mention_requester=False):
+
         try:
             if getattr(self, "requester_info", None) is None or "id" not in \
                     self.requester_info:
@@ -173,8 +190,8 @@ class SlackProvision:
 
             if mention_requester and requester_info:
                 message = f"<@{requester_info}> {message}"
-            client = WebClient(self.token)
-            response = client.chat_postMessage(
+            client = AsyncWebClient(self.token)
+            response = await client.chat_postMessage(
                 channel=channel,
                 thread_ts=thread_ts,
                 text=message,
@@ -207,10 +224,12 @@ class SlackProvision:
         values["requesters_ts"] = self.requesters_ts
         values["requesters_channel"] = self.requesters_channel
         values["approvers_channel"] = self.approvers_channel
+        values["requester_info"] = json.dumps(self.requester_info)
+        values["prevent_self_approval"] = self.prevent_self_approval
         values["modifiables_fields"] = ";".join(list(self.modifiables_fields.keys()))
         edit_button = values.get("modifiables_fields", None) is not None and values["modifiables_fields"] != ""
         approvers_blocks.extend(get_buttons_blocks(value=json.dumps(values), edit_button=edit_button))
-        asyncio.run(self.send_message_requester_approver(requesters_blocks, approvers_blocks))
+        self.send_message_requester_approver(requesters_blocks, approvers_blocks)
 
     def is_allowed(self):
         if not self.prevent_self_approval:
@@ -433,12 +452,15 @@ class SlackProvision:
             for block_name, block_values in blocks.items()
             if f"action_id_{block_name}" in block_values
         }
+
         for block_name, block_values in blocks.items():
             actual_value = self.inputs[block_name]
             new_value = block_values[f"action_id_{block_name}"]["value"]
             if actual_value != new_value:
-                self.inputs["modified"] = True
+                if self.modifications_message is None:
+                    self.modifications_message = "Modifications: "
                 self.inputs[block_name] = new_value
+                self.modifications_message = f"{self.modifications_message} {actual_value} -> {new_value} \n"
 
         blocks = {
             block_name.replace("multivalue_block_id_", ""): block_values
@@ -446,8 +468,12 @@ class SlackProvision:
             if "multivalue_block_id_" in block_name
         }
 
+        old_values = {}
         for block_name, block_values in blocks.items():
-            self.inputs[re.sub(r"_\d+$", '', block_name)] = []
+            key = re.sub(r"_\d+$", '', block_name)
+            if key not in old_values:
+                old_values[key] = self.inputs[key].copy()
+                self.inputs[re.sub(r"_\d+$", '', block_name)] = []
 
         blocks = {
             block_name: block_values
@@ -459,8 +485,14 @@ class SlackProvision:
             new_value = block_values[f"action_id_{block_name}"]["value"]
             if new_value is None or new_value == "":
                 continue
-            self.inputs["modified"] = True
             self.inputs[re.sub(r"_\d+$", '', block_name)].append(new_value)
+
+        for block_name, block_values in old_values.items():
+            new_value = self.inputs[block_name]
+            if new_value != block_values:
+                if self.modifications_message is None:
+                    self.modifications_message = "Modifications: "
+                self.modifications_message = f"{self.modifications_message} {block_name}:{block_values} -> {new_value} \n"
 
     @staticmethod
     def construct_reason_modal(private_metadata):
@@ -506,17 +538,7 @@ class SlackProvision:
             "requester_info": self.requester_info
         }
 
-    async def send_notifications(self, message, mention_requester):
-        self.send_message_to_thread(message=message,
-                                                thread_ts=self.requesters_ts,
-                                                channel=self.requesters_channel,
-                                                mention_requester=True)
 
-        self.send_message_to_thread(message=message,
-                                                thread_ts=self.approvers_ts,
-                                                channel=self.channel_id,
-                                                mention_requester=True)
-
-    async def send_message_requester_approver(self, requesters_blocks, approvers_blocks):
-        self.send_message_requester(requesters_blocks)
-        self.send_message_approver(approvers_blocks)
+    def send_message_requester_approver(self, requesters_blocks, approvers_blocks):
+        asyncio.run(self.send_message_requester(requesters_blocks))
+        asyncio.run(self.send_message_approver(approvers_blocks))
