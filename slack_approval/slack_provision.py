@@ -1,3 +1,4 @@
+import concurrent.futures
 import json
 import os
 import logging
@@ -33,6 +34,7 @@ class SlackProvision:
         self.data = request.get_data()
         self.headers = request.headers
         self.payload = json.loads(request.form["payload"])
+        self.async_provision = json.loads(self.payload) if "async_provision" in self.payload else False
         # Comes from the reject response modal view (data comes in private metadata)
         if self.is_callback_view(callback_id="reject_reason_modal"):
             self.action_id = "Reject Response"
@@ -74,7 +76,10 @@ class SlackProvision:
         try:
             if self.action_id == "Approved":
                 mention_requester = True
-                self.approved()
+                if self.async_provision:
+                    asyncio.run(self.approved())
+                else:
+                    self.approved()
             elif self.action_id == "Rejected":
                 self.open_reject_reason_view()
                 return
@@ -86,14 +91,14 @@ class SlackProvision:
                 self.rejected()
                 message = f"reason for rejection: {self.reason}"
                 asyncio.run(self.send_message_to_thread(message=message,
-                                            thread_ts=self.requesters_ts,
-                                            channel=self.requesters_channel,
-                                            mention_requester=mention_requester))
+                                                        thread_ts=self.requesters_ts,
+                                                        channel=self.requesters_channel,
+                                                        mention_requester=mention_requester))
 
                 asyncio.run(self.send_message_to_thread(message=message,
-                                            thread_ts=self.approvers_ts,
-                                            channel=self.channel_id,
-                                            mention_requester=mention_requester))
+                                                        thread_ts=self.approvers_ts,
+                                                        channel=self.channel_id,
+                                                        mention_requester=mention_requester))
             elif self.action_id == "Edit":
                 self.open_edit_view()
                 return
@@ -129,7 +134,6 @@ class SlackProvision:
     @staticmethod
     def rejected():
         logger.info("request rejected")
-
 
     async def send_message_approver(self, blocks):
         try:
@@ -174,8 +178,6 @@ class SlackProvision:
                 self.inputs.pop(field, None)
             self.inputs.pop("hide")
         blocks = self.get_message_status(status, mention_requester)
-        # asyncio.run(self.send_message_approver(blocks))
-        # asyncio.run(self.send_message_requester(blocks))
         self.send_message_requester_approver(blocks, blocks)
 
     async def send_message_to_thread(self, message, thread_ts, channel, mention_requester=False):
@@ -214,7 +216,6 @@ class SlackProvision:
         requesters_blocks.extend(get_header_block(name=self.name))
         requesters_blocks.extend(get_inputs_blocks(self.inputs))
         requesters_blocks.extend(get_status_block(status="Pending. Modified ", user=self.user))
-
 
         approvers_blocks = []
         approvers_blocks.extend(get_header_block(name=self.name))
@@ -292,10 +293,10 @@ class SlackProvision:
         else:
             requester_info = self.requester_info["id"]
         blocks.extend(
-            get_status_block(status=status, user=self.user, mention_requester=mention_requester, user_id=requester_info))
+            get_status_block(status=status, user=self.user, mention_requester=mention_requester,
+                             user_id=requester_info))
         if self.exception:
             blocks.extend(get_exception_block(self.exception))
-
 
         return blocks
 
@@ -537,7 +538,6 @@ class SlackProvision:
             "modifiables_fields": self.modifiables_fields,
             "requester_info": self.requester_info
         }
-
 
     def send_message_requester_approver(self, requesters_blocks, approvers_blocks):
         asyncio.run(self.send_message_requester(requesters_blocks))
