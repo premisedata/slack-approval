@@ -76,10 +76,10 @@ class SlackProvision:
         try:
             if self.action_id == "Approved":
                 mention_requester = True
-                if self.async_provision:
-                    asyncio.run(self.approved())
-                else:
-                    self.approved()
+#                if self.async_provision:
+                asyncio.run(self.approved)
+#                else:
+#                    self.approved()
             elif self.action_id == "Rejected":
                 self.open_reject_reason_view()
                 return
