@@ -13,10 +13,7 @@ class SlackRequest:
     def __init__(self, request):
         """requesters_channel only necessary for `pending` messages"""
         self.inputs = request.json
-        if "provision_class_human_readable_name" in self.inputs:
-            self.name = self.inputs["provision_class_human_readable_name"]
-        else:
-            self.name = self.inputs["provision_class"]
+        self.name = self.inputs["provision_class"]
         self.value = self.inputs.copy()  # save inputs before hiding anything
         hide = self.inputs.get("hide")
         if hide:
